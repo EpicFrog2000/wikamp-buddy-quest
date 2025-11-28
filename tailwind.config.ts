@@ -47,6 +47,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        companion: {
+          happy: "hsl(var(--companion-happy))",
+          hungry: "hsl(var(--companion-hungry))",
+          tired: "hsl(var(--companion-tired))",
+        },
+        game: {
+          success: "hsl(var(--game-success))",
+          danger: "hsl(var(--game-danger))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
