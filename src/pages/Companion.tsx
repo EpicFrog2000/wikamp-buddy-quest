@@ -90,13 +90,7 @@ const Companion = () => {
                 <img
                   src={squirrelImage}
                   alt="Wiewiórka"
-                  className={`w-44 h-44 object-contain transition-transform duration-500 ${
-                    mood === "happy"
-                      ? "animate-bounce"
-                      : mood === "neutral"
-                      ? "scale-95"
-                      : "scale-90 opacity-70"
-                  }`}
+                  className="w-44 h-44 object-contain"
                 />
               </div>
             </div>

@@ -138,7 +138,7 @@ const Index = () => {
               <img
                 src={squirrelImage}
                 alt="Twój wirtualny towarzysz - kliknij aby otworzyć"
-                className="w-36 h-36 object-contain animate-bounce"
+                className="w-36 h-36 object-contain"
               />
             </div>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
