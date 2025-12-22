@@ -18,7 +18,7 @@ const Login = () => {
       // Zapisz rolę w localStorage (tylko do demo - w produkcji użyj prawdziwej autentykacji)
       localStorage.setItem("userRole", selectedRole);
       localStorage.setItem("isLoggedIn", "true");
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 
