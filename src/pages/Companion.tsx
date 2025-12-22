@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,23 @@ import { TaskList } from "@/components/TaskList";
 import { IcyTowerGame } from "@/components/IcyTowerGame";
 import { Leaderboard } from "@/components/Leaderboard";
 import { RewardShop } from "@/components/RewardShop";
-import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star } from "lucide-react";
+import { AdminPanel } from "@/components/AdminPanel";
+import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings } from "lucide-react";
 import squirrelImage from "@/assets/squirrel.png";
 
 const Companion = () => {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [stats, setStats] = useState({
     happiness: 80,
     hunger: 60,
     energy: 70,
     points: 150,
   });
+
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
+    setIsAdmin(role === "admin");
+  }, []);
 
   const feedCompanion = () => {
     if (stats.points >= 10) {
@@ -178,7 +185,7 @@ const Companion = () => {
       {/* Main Content */}
       <main className="ml-80 p-8">
         <Tabs defaultValue="tasks" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto p-2 bg-card border-2 border-primary/10">
+          <TabsList className={`grid w-full h-auto p-2 bg-card border-2 border-primary/10 ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger
               value="tasks"
               className="flex flex-col gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -212,6 +219,15 @@ const Companion = () => {
               </svg>
               <span className="text-sm font-semibold">Sklep</span>
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger
+                value="admin"
+                className="flex flex-col gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="text-sm font-semibold">Admin</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="tasks">
@@ -229,6 +245,12 @@ const Companion = () => {
           <TabsContent value="shop">
             <RewardShop />
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin">
+              <AdminPanel />
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>
