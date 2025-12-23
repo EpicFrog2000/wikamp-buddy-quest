@@ -169,8 +169,7 @@ export const IcyTowerGame = () => {
     }
     
     lastTimestampRef.current = performance.now();
-    gameLoopIdRef.current = requestAnimationFrame(gameLoop);
-  }, [resetGame, gameLoop]);
+  }, [resetGame]);
 
   const endGame = useCallback(() => {
     setGameOver(true);
@@ -423,14 +422,19 @@ export const IcyTowerGame = () => {
     gameLoopIdRef.current = requestAnimationFrame(gameLoop);
   }, [gameStarted, gameOver, endGame]);
 
-  // Cleanup on unmount
+  // Start game loop when game starts
   useEffect(() => {
+    if (gameStarted && !gameOver) {
+      lastTimestampRef.current = performance.now();
+      gameLoopIdRef.current = requestAnimationFrame(gameLoop);
+    }
+    
     return () => {
       if (gameLoopIdRef.current) {
         cancelAnimationFrame(gameLoopIdRef.current);
       }
     };
-  }, []);
+  }, [gameStarted, gameOver, gameLoop]);
 
   return (
     <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10 shadow-xl">
