@@ -175,22 +175,40 @@ export const IcyTowerGame = () => {
   }, [gameStarted, gameOver, highScore]);
 
   const startGame = () => {
-    // Reset player position
-    playerRef.current = { x: 200, y: 400, vx: 0, vy: 0, jumping: false };
-    cameraYRef.current = 0;
-    
-    // Reset platforms
     const canvas = canvasRef.current;
-    if (canvas) {
-      platformsRef.current = [];
-      for (let i = 0; i < 15; i++) {
-        platformsRef.current.push({
-          x: Math.random() * (canvas.width - 100),
-          y: canvas.height - i * 60,
-          width: 80 + Math.random() * 40,
-        });
-      }
+    if (!canvas) return;
+    
+    // Create platforms with first one under player
+    platformsRef.current = [];
+    const startPlatformX = 150; // Fixed position for start platform
+    const startPlatformY = canvas.height - 60;
+    const startPlatformWidth = 120; // Wider start platform
+    
+    // Add starting platform
+    platformsRef.current.push({
+      x: startPlatformX,
+      y: startPlatformY,
+      width: startPlatformWidth,
+    });
+    
+    // Add remaining platforms above
+    for (let i = 1; i < 15; i++) {
+      platformsRef.current.push({
+        x: Math.random() * (canvas.width - 100),
+        y: startPlatformY - i * 60,
+        width: 80 + Math.random() * 40,
+      });
     }
+    
+    // Position player on top of starting platform
+    playerRef.current = { 
+      x: startPlatformX + startPlatformWidth / 2 - 10, 
+      y: startPlatformY - 20, 
+      vx: 0, 
+      vy: 0, 
+      jumping: false 
+    };
+    cameraYRef.current = 0;
     
     setScore(0);
     setGameOver(false);
