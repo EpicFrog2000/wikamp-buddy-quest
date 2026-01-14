@@ -186,20 +186,10 @@ export const TaskList = () => {
                   </Badge>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <span className="text-sm font-bold text-primary">
                     +{task.points} punktów
                   </span>
-
-                  {!task.completed && (
-                    <Button
-                      onClick={() => completeTask(task.id)}
-                      size="sm"
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      Ukończ
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>

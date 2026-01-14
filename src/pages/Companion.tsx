@@ -70,7 +70,7 @@ const Companion = () => {
       {/* Sidebar with Companion */}
       <aside className="fixed left-0 top-0 w-80 h-screen bg-sidebar text-sidebar-foreground p-6 overflow-y-auto">
         {/* Back Button */}
-        <Link to="/">
+        <Link to="/dashboard">
           <Button variant="ghost" className="mb-6 text-sidebar-foreground hover:bg-white/10 w-full justify-start">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Powrót do Wikamp
