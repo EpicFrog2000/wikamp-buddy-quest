@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,73 +9,85 @@ import { MiniGames } from "@/components/MiniGames";
 import { Leaderboard } from "@/components/Leaderboard";
 import { RewardShop } from "@/components/RewardShop";
 import { AdminPanel } from "@/components/AdminPanel";
-import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings } from "lucide-react";
+import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings, LogOut, Loader2 } from "lucide-react";
 import squirrelImage from "@/assets/squirrel.png";
-import { getCurrentUser, updateCurrentUserPoints } from "@/lib/userManager";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 const Companion = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { profile, isAdmin, updatePoints, loading: profileLoading } = useProfile();
+  
   const [stats, setStats] = useState({
     happiness: 80,
     hunger: 60,
     energy: 70,
-    points: 150,
   });
 
+  // Redirect if not logged in
   useEffect(() => {
-    const role = localStorage.getItem("userRole");
-    setIsAdmin(role === "admin");
-    
-    // Load current user points from database
-    const currentUser = getCurrentUser();
-    if (currentUser.points > 0) {
-      setStats(prev => ({ ...prev, points: currentUser.points }));
+    if (!authLoading && !user) {
+      navigate("/");
     }
-  }, []);
+  }, [user, authLoading, navigate]);
 
-  // Sync points to database when they change
-  useEffect(() => {
-    updateCurrentUserPoints(stats.points);
-  }, [stats.points]);
+  // Sync points with profile
+  const points = profile?.points || 0;
 
-  const feedCompanion = () => {
-    if (stats.points >= 10) {
+  const handlePointsChange = async (change: number) => {
+    const newPoints = Math.max(0, points + change);
+    await updatePoints(newPoints);
+  };
+
+  const feedCompanion = async () => {
+    if (points >= 10) {
       setStats((prev) => ({
         ...prev,
         hunger: Math.min(100, prev.hunger + 20),
         happiness: Math.min(100, prev.happiness + 5),
-        points: prev.points - 10,
       }));
+      await handlePointsChange(-10);
     }
   };
 
-  const playWithCompanion = () => {
-    if (stats.points >= 15) {
+  const playWithCompanion = async () => {
+    if (points >= 15) {
       setStats((prev) => ({
         ...prev,
         happiness: Math.min(100, prev.happiness + 20),
         energy: Math.max(0, prev.energy - 10),
-        points: prev.points - 15,
       }));
+      await handlePointsChange(-15);
     }
   };
 
-  const restCompanion = () => {
-    if (stats.points >= 5) {
+  const restCompanion = async () => {
+    if (points >= 5) {
       setStats((prev) => ({
         ...prev,
         energy: Math.min(100, prev.energy + 25),
-        points: prev.points - 5,
       }));
+      await handlePointsChange(-5);
     }
   };
 
-  const mood =
-    (stats.happiness + stats.hunger + stats.energy) / 3 > 60
-      ? "happy"
-      : (stats.happiness + stats.hunger + stats.energy) / 3 > 30
-      ? "neutral"
-      : "sad";
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,14 +95,27 @@ const Companion = () => {
       <aside className="fixed left-0 top-0 w-80 h-screen bg-sidebar text-sidebar-foreground p-6 overflow-y-auto">
         {/* Back Button */}
         <Link to="/dashboard">
-          <Button variant="ghost" className="mb-6 text-sidebar-foreground hover:bg-white/10 w-full justify-start">
+          <Button variant="ghost" className="mb-4 text-sidebar-foreground hover:bg-white/10 w-full justify-start">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Powrót do Wikamp
           </Button>
         </Link>
 
+        {/* Sign Out Button */}
+        <Button 
+          variant="ghost" 
+          className="mb-6 text-sidebar-foreground hover:bg-white/10 w-full justify-start"
+          onClick={handleSignOut}
+        >
+          <LogOut className="w-5 h-5 mr-2" />
+          Wyloguj się
+        </Button>
+
         {/* Header */}
-        <h2 className="text-2xl font-bold mb-6">Twój Towarzysz</h2>
+        <h2 className="text-2xl font-bold mb-2">Twój Towarzysz</h2>
+        <p className="text-sm text-sidebar-foreground/70 mb-6">
+          Witaj, {profile?.name || user.email}!
+        </p>
 
         {/* Points Display */}
         <div className="mb-6 p-4 bg-primary rounded-xl flex items-center justify-between">
@@ -98,7 +123,7 @@ const Companion = () => {
             <Star className="w-6 h-6 text-primary-foreground" />
             <span className="text-primary-foreground font-bold text-xl">Punkty</span>
           </div>
-          <span className="text-primary-foreground font-bold text-2xl">{stats.points}</span>
+          <span className="text-primary-foreground font-bold text-2xl">{points}</span>
         </div>
 
         {/* Companion Display */}
@@ -154,7 +179,7 @@ const Companion = () => {
             <div className="grid grid-cols-3 gap-2 pt-2">
               <Button
                 onClick={feedCompanion}
-                disabled={stats.points < 10}
+                disabled={points < 10}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
@@ -164,7 +189,7 @@ const Companion = () => {
               </Button>
               <Button
                 onClick={playWithCompanion}
-                disabled={stats.points < 15}
+                disabled={points < 15}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
@@ -174,7 +199,7 @@ const Companion = () => {
               </Button>
               <Button
                 onClick={restCompanion}
-                disabled={stats.points < 5}
+                disabled={points < 5}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
@@ -248,13 +273,13 @@ const Companion = () => {
 
           <TabsContent value="game">
             <MiniGames 
-              points={stats.points} 
-              onPointsChange={(change) => setStats(prev => ({ ...prev, points: prev.points + change }))} 
+              points={points} 
+              onPointsChange={handlePointsChange} 
             />
           </TabsContent>
 
           <TabsContent value="leaderboard">
-            <Leaderboard currentPoints={stats.points} />
+            <Leaderboard />
           </TabsContent>
 
           <TabsContent value="shop">

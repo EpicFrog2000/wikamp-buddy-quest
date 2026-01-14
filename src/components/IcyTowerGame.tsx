@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, ArrowUp, RefreshCw } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Player {
   x: number;
@@ -21,14 +22,18 @@ interface Platform {
   isStartingPlatform?: boolean;
 }
 
-export const IcyTowerGame = () => {
+interface IcyTowerGameProps {
+  onScoreUpdate?: (score: number) => void;
+}
+
+export const IcyTowerGame = ({ onScoreUpdate }: IcyTowerGameProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    // Load high score from localStorage if available
-    const saved = localStorage.getItem("icyTowerHighScore");
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  const { gameRecords, updateGameRecord } = useProfile();
+  
+  const icyTowerRecord = gameRecords.find(r => r.game_name === "icyTower");
+  const highScore = icyTowerRecord?.high_score || 0;
+  
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   
@@ -48,20 +53,13 @@ export const IcyTowerGame = () => {
   const lastTimestampRef = useRef<number>(0);
   const gameLoopIdRef = useRef<number>(0);
 
-  // Save high score to localStorage when it changes
-  useEffect(() => {
-    if (highScore > 0) {
-      localStorage.setItem("icyTowerHighScore", highScore.toString());
-    }
-  }, [highScore]);
-
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressedRef.current.add(e.key);
       
       if (e.key === " " && gameStarted && !gameOver) {
-        e.preventDefault(); // Prevent spacebar from scrolling page
+        e.preventDefault();
       }
     };
 
@@ -78,14 +76,12 @@ export const IcyTowerGame = () => {
     };
   }, [gameStarted, gameOver]);
 
-  // Game initialization - UPDATED to ensure player starts on platform
   const initPlatforms = useCallback((canvas: HTMLCanvasElement) => {
     const platforms: Platform[] = [];
-    const startPlatformY = canvas.height - 100; // Starting position higher
+    const startPlatformY = canvas.height - 100;
     
-    // Create wider and more visible starting platform
     const startingPlatform: Platform = {
-      x: canvas.width / 2 - 80, // Centered and wider
+      x: canvas.width / 2 - 80,
       y: startPlatformY,
       width: 160,
       height: 20,
@@ -94,14 +90,12 @@ export const IcyTowerGame = () => {
     
     platforms.push(startingPlatform);
     
-    // Position player exactly on top of the starting platform
     playerRef.current.x = startingPlatform.x + startingPlatform.width / 2 - playerRef.current.width / 2;
     playerRef.current.y = startingPlatform.y - playerRef.current.height;
     playerRef.current.vx = 0;
     playerRef.current.vy = 0;
-    playerRef.current.jumping = false; // Player is standing on platform
+    playerRef.current.jumping = false;
     
-    // Create initial stack of platforms above
     for (let i = 1; i < 25; i++) {
       const minGap = 50;
       const maxGap = 70;
@@ -109,7 +103,6 @@ export const IcyTowerGame = () => {
       const maxWidth = 100;
       const previousPlatform = platforms[i - 1];
       
-      // Ensure platforms are reachable (not too far horizontally)
       const maxHorizontalJump = 80;
       const minX = Math.max(0, previousPlatform.x - maxHorizontalJump);
       const maxX = Math.min(canvas.width - minWidth, previousPlatform.x + previousPlatform.width + maxHorizontalJump - minWidth);
@@ -129,10 +122,8 @@ export const IcyTowerGame = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // First initialize platforms to get starting platform position
     initPlatforms(canvas);
     
-    // Then ensure player is properly positioned on starting platform
     const startingPlatform = platformsRef.current.find(p => p.isStartingPlatform);
     if (startingPlatform) {
       playerRef.current = {
@@ -156,14 +147,11 @@ export const IcyTowerGame = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Reset game state
     setGameStarted(true);
     setGameOver(false);
     
-    // Initialize platforms and position player
     resetGame();
     
-    // Start game loop
     if (gameLoopIdRef.current) {
       cancelAnimationFrame(gameLoopIdRef.current);
     }
@@ -171,22 +159,21 @@ export const IcyTowerGame = () => {
     lastTimestampRef.current = performance.now();
   }, [resetGame]);
 
-  const endGame = useCallback(() => {
+  const endGame = useCallback(async () => {
     setGameOver(true);
     setGameStarted(false);
-    if (score > highScore) {
-      setHighScore(score);
-    }
     cancelAnimationFrame(gameLoopIdRef.current);
-  }, [score, highScore]);
+    
+    // Save score to database
+    await updateGameRecord("icyTower", score);
+    onScoreUpdate?.(score);
+  }, [score, updateGameRecord, onScoreUpdate]);
 
-  // Game loop
   const gameLoop = useCallback((timestamp: number) => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx || !gameStarted || gameOver) return;
 
-    // Calculate delta time for consistent physics
     const deltaTime = Math.min(timestamp - lastTimestampRef.current, 32) / 16;
     lastTimestampRef.current = timestamp;
 
@@ -194,40 +181,33 @@ export const IcyTowerGame = () => {
     const platforms = platformsRef.current;
     const keys = keysPressedRef.current;
 
-    // Handle player input with smoother acceleration
     const moveSpeed = 6;
     if (keys.has("ArrowLeft") || keys.has("a")) {
       player.vx = -moveSpeed;
     } else if (keys.has("ArrowRight") || keys.has("d")) {
       player.vx = moveSpeed;
     } else {
-      // Apply friction when no keys are pressed
       player.vx *= 0.8;
       if (Math.abs(player.vx) < 0.5) player.vx = 0;
     }
 
-    // Handle jumping - only if on platform
     if ((keys.has(" ") || keys.has("ArrowUp") || keys.has("w")) && !player.jumping) {
       player.vy = -14;
       player.jumping = true;
     }
 
-    // Apply gravity
     const gravity = 0.8;
     player.vy += gravity * deltaTime;
 
-    // Update player position
     player.x += player.vx * deltaTime;
     player.y += player.vy * deltaTime;
 
-    // Screen boundaries (wrap around)
     if (player.x < -player.width) {
       player.x = canvas.width;
     } else if (player.x > canvas.width) {
       player.x = -player.width;
     }
 
-    // Check platform collisions
     let onPlatform = false;
     const playerBottom = player.y + player.height;
     const playerLeft = player.x;
@@ -235,11 +215,9 @@ export const IcyTowerGame = () => {
 
     for (const platform of platforms) {
       const platformTop = platform.y;
-      const platformBottom = platform.y + platform.height;
       const platformLeft = platform.x;
       const platformRight = platform.x + platform.width;
 
-      // Check if player is above platform and falling
       if (
         player.vy >= 0 &&
         playerBottom >= platformTop &&
@@ -247,36 +225,29 @@ export const IcyTowerGame = () => {
         playerRight > platformLeft &&
         playerLeft < platformRight
       ) {
-        // Land on platform
         player.y = platformTop - player.height;
         player.vy = 0;
         player.jumping = false;
         onPlatform = true;
-        
-        // Small bounce effect when landing
         player.y -= 1;
         break;
       }
     }
 
-    // If not on any platform and not jumping, start falling
     if (!onPlatform && !player.jumping && player.vy === 0) {
       player.jumping = true;
     }
 
-    // Camera follow and world scrolling
     const cameraThreshold = canvas.height * 0.4;
     if (player.y < cameraThreshold) {
       const scrollAmount = cameraThreshold - player.y;
       cameraYRef.current += scrollAmount;
       player.y = cameraThreshold;
 
-      // Move all platforms down
       for (const platform of platforms) {
         platform.y += scrollAmount;
       }
 
-      // Generate new platforms at the top
       const highestPlatformY = Math.min(...platforms.map(p => p.y));
       if (highestPlatformY > -100) {
         const minGap = 50;
@@ -286,7 +257,6 @@ export const IcyTowerGame = () => {
         const topPlatforms = platforms.filter(p => p.y < canvas.height / 2).slice(-5);
         const lastPlatform = topPlatforms[topPlatforms.length - 1] || platforms[platforms.length - 1];
         
-        // Ensure new platforms are reachable
         const maxHorizontalJump = 80;
         const minX = Math.max(0, lastPlatform.x - maxHorizontalJump);
         const maxX = Math.min(canvas.width - minWidth, lastPlatform.x + lastPlatform.width + maxHorizontalJump - minWidth);
@@ -299,37 +269,28 @@ export const IcyTowerGame = () => {
         });
       }
 
-      // Remove platforms that are far below the screen
       platformsRef.current = platforms.filter(p => p.y < canvas.height + 200);
 
-      // Update score
       const newScore = Math.floor(cameraYRef.current / 5);
       setScore(newScore);
     }
 
-    // Game over condition - player falls below starting platform area
     if (player.y > canvas.height + 100) {
       endGame();
       return;
     }
 
-    // Render everything
-    // Clear canvas with gradient background
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, "#E3F2FD");
     gradient.addColorStop(1, "#BBDEFB");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw platforms
     platforms.forEach((platform) => {
-      // Highlight starting platform
       if (platform.isStartingPlatform) {
-        // Starting platform shadow
         ctx.fillStyle = "rgba(0, 100, 0, 0.2)";
         ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
         
-        // Starting platform gradient (greenish)
         const platformGradient = ctx.createLinearGradient(
           platform.x, platform.y,
           platform.x, platform.y + platform.height
@@ -339,22 +300,18 @@ export const IcyTowerGame = () => {
         ctx.fillStyle = platformGradient;
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         
-        // Starting platform border
         ctx.strokeStyle = "#1B5E20";
         ctx.lineWidth = 2;
         ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
         
-        // Draw "START" text on starting platform
         ctx.fillStyle = "#FFFFFF";
         ctx.font = "bold 14px Arial";
         ctx.textAlign = "center";
         ctx.fillText("START", platform.x + platform.width / 2, platform.y + platform.height / 2 + 4);
       } else {
-        // Regular platform shadow
         ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
         ctx.fillRect(platform.x + 2, platform.y + 2, platform.width, platform.height);
         
-        // Main platform
         const platformGradient = ctx.createLinearGradient(
           platform.x, platform.y,
           platform.x, platform.y + platform.height
@@ -364,24 +321,20 @@ export const IcyTowerGame = () => {
         ctx.fillStyle = platformGradient;
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         
-        // Platform border
         ctx.strokeStyle = "#BF360C";
         ctx.lineWidth = 1;
         ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
       }
     });
 
-    // Draw player (squirrel) with more details
     const playerCenterX = player.x + player.width / 2;
     const playerCenterY = player.y + player.height / 2;
     
-    // Shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
     ctx.beginPath();
     ctx.ellipse(playerCenterX + 2, player.y + player.height + 3, 10, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Body
     const bodyGradient = ctx.createRadialGradient(
       playerCenterX, playerCenterY, 0,
       playerCenterX, playerCenterY, 12
@@ -393,13 +346,11 @@ export const IcyTowerGame = () => {
     ctx.ellipse(playerCenterX, playerCenterY, 12, 10, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Belly
     ctx.fillStyle = "#FFE0B2";
     ctx.beginPath();
     ctx.ellipse(playerCenterX, playerCenterY + 3, 8, 6, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Eyes
     const eyeOffsetX = player.vx > 0 ? 2 : player.vx < 0 ? -2 : 0;
     ctx.fillStyle = "#000";
     ctx.beginPath();
@@ -407,7 +358,6 @@ export const IcyTowerGame = () => {
     ctx.arc(playerCenterX + 4 + eyeOffsetX, playerCenterY - 2, 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Tail (with movement based on velocity)
     const tailAngle = Math.sin(timestamp / 200) * 0.3;
     ctx.save();
     ctx.translate(playerCenterX + 8, playerCenterY);
@@ -418,11 +368,9 @@ export const IcyTowerGame = () => {
     ctx.fill();
     ctx.restore();
 
-    // Continue game loop
     gameLoopIdRef.current = requestAnimationFrame(gameLoop);
   }, [gameStarted, gameOver, endGame]);
 
-  // Start game loop when game starts
   useEffect(() => {
     if (gameStarted && !gameOver) {
       lastTimestampRef.current = performance.now();
@@ -483,7 +431,7 @@ export const IcyTowerGame = () => {
                       <p className="text-xl font-bold text-primary">
                         Twój wynik: {score}
                       </p>
-                      {score === highScore && (
+                      {score >= highScore && score > 0 && (
                         <p className="text-sm text-green-600 font-bold">
                           🎉 Nowy rekord!
                         </p>
@@ -500,56 +448,32 @@ export const IcyTowerGame = () => {
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 h-12 text-lg"
+                    className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                   >
-                    <ArrowUp className="w-5 h-5 mr-2" />
+                    {gameOver ? <RefreshCw className="w-5 h-5" /> : <ArrowUp className="w-5 h-5" />}
                     {gameOver ? "Zagraj ponownie" : "Rozpocznij grę"}
                   </Button>
                   
-                  {gameOver && (
-                    <Button
-                      onClick={resetGame}
-                      variant="outline"
-                      size="lg"
-                      className="w-full h-12"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Resetuj grę
-                    </Button>
-                  )}
-                </div>
-                
-                <div className="pt-4 border-t border-border">
-                  <h4 className="font-semibold text-sm mb-2">Sterowanie:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-muted p-2 rounded text-center">
-                      <div className="font-bold">← → / A D</div>
-                      <div className="text-muted-foreground">Ruch</div>
+                  <div className="flex flex-col gap-2 text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">←</kbd>
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">→</kbd>
+                      <span>lub</span>
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">A</kbd>
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">D</kbd>
+                      <span>Ruch</span>
                     </div>
-                    <div className="bg-muted p-2 rounded text-center">
-                      <div className="font-bold">Spacja / W / ↑</div>
-                      <div className="text-muted-foreground">Skok</div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">Space</kbd>
+                      <span>lub</span>
+                      <kbd className="px-2 py-1 bg-background rounded border text-xs">↑</kbd>
+                      <span>Skok</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-          <div className="bg-muted/50 p-3 rounded-lg text-center">
-            <div className="font-bold text-primary">Start gry</div>
-            <div>Zaczynasz zawsze na zielonej platformie START</div>
-          </div>
-          <div className="bg-muted/50 p-3 rounded-lg text-center">
-            <div className="font-bold text-primary">Mechanika</div>
-            <div>Skacz z platformy na platformę</div>
-          </div>
-          <div className="bg-muted/50 p-3 rounded-lg text-center">
-            <div className="font-bold text-primary">Punkty</div>
-            <div>1 punkt za każde 5 pikseli wysokości</div>
-          </div>
         </div>
       </div>
     </Card>
