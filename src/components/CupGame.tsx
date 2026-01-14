@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trophy, Coins, Play } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 interface CupGameProps {
   points: number;
@@ -10,21 +11,20 @@ interface CupGameProps {
 }
 
 export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
+  const { gameRecords, updateGameRecord } = useProfile();
+  const cupGameRecord = gameRecords.find(r => r.game_name === "cupGame");
+  const highScore = cupGameRecord?.high_score || 0;
+  
   const [gameState, setGameState] = useState<"betting" | "showing" | "shuffling" | "choosing" | "result">("betting");
-  const [ballPosition, setBallPosition] = useState(1); // 0, 1, or 2 - logical position (which cup has the ball)
-  const [cupPositions, setCupPositions] = useState([0, 1, 2]); // Maps visual position to logical cup
+  const [ballPosition, setBallPosition] = useState(1);
+  const [cupPositions, setCupPositions] = useState([0, 1, 2]);
   const [bet, setBet] = useState(10);
   const [selectedCup, setSelectedCup] = useState<number | null>(null);
   const [won, setWon] = useState(false);
   const [cupsLifted, setCupsLifted] = useState(false);
   const [shuffleCount, setShuffleCount] = useState(0);
-  const [highScore, setHighScore] = useState(() => {
-    const saved = localStorage.getItem("cupGameHighScore");
-    return saved ? parseInt(saved, 10) : 0;
-  });
   const [totalWon, setTotalWon] = useState(0);
 
-  // Shuffle animation
   const shuffleCups = useCallback(() => {
     const shuffles = 5 + Math.floor(Math.random() * 5);
     let count = 0;
@@ -54,20 +54,17 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
   const startGame = () => {
     if (bet > points || bet < 1) return;
     
-    // Deduct bet
     onPointsChange(-bet);
     
-    // Reset state - ball is placed under a RANDOM cup
     const newBallPosition = Math.floor(Math.random() * 3);
     setBallPosition(newBallPosition);
     setCupPositions([0, 1, 2]);
     setSelectedCup(null);
     setWon(false);
-    setCupsLifted(true); // Show ball first
+    setCupsLifted(true);
     setShuffleCount(0);
     setGameState("showing");
     
-    // Show ball for 2 seconds, then hide and shuffle
     setTimeout(() => {
       setCupsLifted(false);
       setGameState("shuffling");
@@ -77,14 +74,13 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     }, 2000);
   };
 
-  const selectCup = (cupIndex: number) => {
+  const selectCup = async (cupIndex: number) => {
     if (gameState !== "choosing") return;
     
     setSelectedCup(cupIndex);
     setCupsLifted(true);
     setGameState("result");
     
-    // Find which visual position has the ball
     const ballVisualPosition = cupPositions.indexOf(ballPosition);
     const playerWon = cupIndex === ballVisualPosition;
     
@@ -93,13 +89,11 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     if (playerWon) {
       const winAmount = bet * 2;
       onPointsChange(winAmount);
-      const newTotalWon = totalWon + bet;
+      const newTotalWon = totalWon + 1;
       setTotalWon(newTotalWon);
       
-      if (newTotalWon > highScore) {
-        setHighScore(newTotalWon);
-        localStorage.setItem("cupGameHighScore", newTotalWon.toString());
-      }
+      // Update game record in database
+      await updateGameRecord("cupGame", newTotalWon);
     }
   };
 
@@ -110,9 +104,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
   };
 
   const getCupStyle = (visualIndex: number) => {
-    const logicalIndex = cupPositions[visualIndex];
     const baseX = visualIndex * 120;
-    const isSelected = selectedCup === visualIndex;
     const shouldLift = cupsLifted;
     
     return {
@@ -148,7 +140,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
               <Trophy className="w-5 h-5 text-primary" />
-              <span className="font-bold text-foreground">Najlepszy: {highScore}</span>
+              <span className="font-bold text-foreground">Wygrane: {highScore}</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-secondary rounded-full">
               <Coins className="w-5 h-5 text-secondary-foreground" />
@@ -177,10 +169,8 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                 style={getCupStyle(visualIndex)}
                 onClick={() => selectCup(visualIndex)}
               >
-                {/* Cup */}
                 <div className="relative">
                   <svg width="100" height="120" viewBox="0 0 100 120">
-                    {/* Cup body */}
                     <defs>
                       <linearGradient id={`cupGradient${visualIndex}`} x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#8B4513" />
@@ -194,9 +184,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                       stroke="#5D3A1A"
                       strokeWidth="2"
                     />
-                    {/* Cup rim */}
                     <ellipse cx="50" cy="8" rx="35" ry="8" fill="#A0522D" stroke="#5D3A1A" strokeWidth="2" />
-                    {/* Highlight */}
                     <path
                       d="M30 20 L35 100"
                       stroke="rgba(255,255,255,0.3)"

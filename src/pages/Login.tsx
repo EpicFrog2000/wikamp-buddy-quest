@@ -1,26 +1,86 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Shield } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin" | null>(null);
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedRole && email && password) {
-      // Zapisz rolę w localStorage (tylko do demo - w produkcji użyj prawdziwej autentykacji)
-      localStorage.setItem("userRole", selectedRole);
-      localStorage.setItem("isLoggedIn", "true");
+  useEffect(() => {
+    if (user && !authLoading) {
       navigate("/dashboard");
     }
+  }, [user, authLoading, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast({
+        title: "Błąd logowania",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      navigate("/dashboard");
+    }
+    setLoading(false);
   };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    if (password.length < 6) {
+      toast({
+        title: "Błąd rejestracji",
+        description: "Hasło musi mieć co najmniej 6 znaków",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    const { error } = await signUp(email, password, name);
+    
+    if (error) {
+      toast({
+        title: "Błąd rejestracji",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces!",
+        description: "Konto zostało utworzone. Możesz się teraz zalogować.",
+      });
+      navigate("/dashboard");
+    }
+    setLoading(false);
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center p-4">
@@ -34,78 +94,115 @@ const Login = () => {
 
         <Card className="border-orange-200 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl text-orange-800">Zaloguj się</CardTitle>
-            <CardDescription>Wybierz typ konta i wprowadź dane</CardDescription>
+            <CardTitle className="text-xl text-orange-800">Witaj!</CardTitle>
+            <CardDescription>Zaloguj się lub utwórz konto</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-6">
-              {/* Wybór roli */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Typ konta</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole("user")}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      selectedRole === "user"
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
-                    }`}
-                  >
-                    <User className="w-8 h-8" />
-                    <span className="font-medium">Użytkownik</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole("admin")}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                      selectedRole === "admin"
-                        ? "border-orange-500 bg-orange-50 text-orange-700"
-                        : "border-gray-200 hover:border-orange-300 hover:bg-orange-50/50"
-                    }`}
-                  >
-                    <Shield className="w-8 h-8" />
-                    <span className="font-medium">Administrator</span>
-                  </button>
-                </div>
-              </div>
+            <Tabs defaultValue="login" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Logowanie</TabsTrigger>
+                <TabsTrigger value="register">Rejestracja</TabsTrigger>
+              </TabsList>
 
-              {/* Formularz logowania */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="twoj@email.pl"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="border-orange-200 focus:border-orange-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Hasło</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="border-orange-200 focus:border-orange-500"
-                  />
-                </div>
-              </div>
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="twoj@email.pl"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="border-orange-200 focus:border-orange-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Hasło</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="border-orange-200 focus:border-orange-500"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                    disabled={loading || !email || !password}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Logowanie...
+                      </>
+                    ) : (
+                      "Zaloguj się"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
 
-              <Button
-                type="submit"
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                disabled={!selectedRole || !email || !password}
-              >
-                Zaloguj się
-              </Button>
-            </form>
+              <TabsContent value="register">
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="register-name">Imię</Label>
+                    <Input
+                      id="register-name"
+                      type="text"
+                      placeholder="Jan Kowalski"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="border-orange-200 focus:border-orange-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-email">Email</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder="twoj@email.pl"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="border-orange-200 focus:border-orange-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="register-password">Hasło</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      placeholder="Min. 6 znaków"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="border-orange-200 focus:border-orange-500"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                    disabled={loading || !email || !password || !name}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Rejestracja...
+                      </>
+                    ) : (
+                      "Utwórz konto"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
