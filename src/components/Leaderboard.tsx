@@ -1,25 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, Crown, Shield, User } from "lucide-react";
+import { getLeaderboard, User as UserType } from "@/lib/userManager";
+import { useEffect, useState } from "react";
 
-interface LeaderboardEntry {
-  rank: number;
-  name: string;
-  score: number;
-  points: number;
+interface LeaderboardProps {
+  currentPoints?: number;
 }
 
-export const Leaderboard = () => {
-  const leaderboard: LeaderboardEntry[] = [
-    { rank: 1, name: "Ania K.", score: 2850, points: 450 },
-    { rank: 2, name: "Marcin W.", score: 2640, points: 425 },
-    { rank: 3, name: "Kasia P.", score: 2410, points: 390 },
-    { rank: 4, name: "Tomek S.", score: 2180, points: 360 },
-    { rank: 5, name: "Ola N.", score: 1950, points: 330 },
-    { rank: 6, name: "Paweł M.", score: 1720, points: 310 },
-    { rank: 7, name: "Zosia B.", score: 1560, points: 285 },
-    { rank: 8, name: "Jakub R.", score: 1340, points: 260 },
-  ];
+export const Leaderboard = ({ currentPoints }: LeaderboardProps) => {
+  const [leaderboard, setLeaderboard] = useState<(UserType & { rank: number; totalScore: number })[]>([]);
+
+  useEffect(() => {
+    const updateLeaderboard = () => {
+      setLeaderboard(getLeaderboard());
+    };
+    
+    updateLeaderboard();
+    
+    // Update every second to reflect changes
+    const interval = setInterval(updateLeaderboard, 1000);
+    return () => clearInterval(interval);
+  }, [currentPoints]);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -47,6 +49,28 @@ export const Leaderboard = () => {
     }
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Crown className="w-4 h-4 text-companion-hungry" />;
+      case "moderator":
+        return <Shield className="w-4 h-4 text-primary" />;
+      default:
+        return <User className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Badge variant="outline" className="text-xs bg-companion-hungry/10 text-companion-hungry border-companion-hungry/30">Admin</Badge>;
+      case "moderator":
+        return <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">Mod</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10">
       <div className="flex items-center gap-3 mb-6">
@@ -59,9 +83,11 @@ export const Leaderboard = () => {
       <div className="space-y-2">
         {leaderboard.map((entry) => (
           <Card
-            key={entry.rank}
+            key={entry.id}
             className={`p-4 transition-all duration-300 ${
-              entry.rank <= 3
+              entry.id === "current"
+                ? "bg-gradient-to-r from-accent/20 to-primary/10 border-accent/40 ring-2 ring-accent/20"
+                : entry.rank <= 3
                 ? "bg-gradient-to-r from-primary/5 to-transparent border-primary/20 hover:shadow-md"
                 : "bg-card hover:bg-muted/30 border-border"
             }`}
@@ -74,26 +100,33 @@ export const Leaderboard = () => {
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
+                    {getRoleIcon(entry.role)}
                     <span className="font-semibold text-foreground">
                       {entry.name}
+                      {entry.id === "current" && " (Ty)"}
                     </span>
                     {entry.rank <= 3 && (
                       <Badge className={getRankBadge(entry.rank)}>
                         TOP {entry.rank}
                       </Badge>
                     )}
+                    {getRoleBadge(entry.role)}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {entry.points} punktów zdobytych
-                  </p>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span>{entry.points} pkt</span>
+                    <span>•</span>
+                    <span>🐿️ {entry.gameRecords.icyTower}</span>
+                    <span>•</span>
+                    <span>🎯 {entry.gameRecords.cupGame} wygranych</span>
+                  </div>
                 </div>
               </div>
 
               <div className="text-right">
                 <div className="text-2xl font-bold text-primary">
-                  {entry.score}
+                  {entry.totalScore}
                 </div>
-                <p className="text-xs text-muted-foreground">wynik w grze</p>
+                <p className="text-xs text-muted-foreground">łączny wynik</p>
               </div>
             </div>
           </Card>

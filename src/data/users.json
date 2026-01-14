@@ -1,0 +1,103 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Ania K.",
+      "role": "user",
+      "points": 450,
+      "gameRecords": {
+        "icyTower": 2850,
+        "cupGame": 12
+      },
+      "tasksCompleted": 15
+    },
+    {
+      "id": "2",
+      "name": "Marcin W.",
+      "role": "user",
+      "points": 425,
+      "gameRecords": {
+        "icyTower": 2640,
+        "cupGame": 10
+      },
+      "tasksCompleted": 14
+    },
+    {
+      "id": "3",
+      "name": "Kasia P.",
+      "role": "moderator",
+      "points": 390,
+      "gameRecords": {
+        "icyTower": 2410,
+        "cupGame": 8
+      },
+      "tasksCompleted": 12
+    },
+    {
+      "id": "4",
+      "name": "Tomek S.",
+      "role": "user",
+      "points": 360,
+      "gameRecords": {
+        "icyTower": 2180,
+        "cupGame": 7
+      },
+      "tasksCompleted": 11
+    },
+    {
+      "id": "5",
+      "name": "Ola N.",
+      "role": "user",
+      "points": 330,
+      "gameRecords": {
+        "icyTower": 1950,
+        "cupGame": 6
+      },
+      "tasksCompleted": 10
+    },
+    {
+      "id": "6",
+      "name": "Paweł M.",
+      "role": "admin",
+      "points": 310,
+      "gameRecords": {
+        "icyTower": 1720,
+        "cupGame": 5
+      },
+      "tasksCompleted": 9
+    },
+    {
+      "id": "7",
+      "name": "Zosia B.",
+      "role": "user",
+      "points": 285,
+      "gameRecords": {
+        "icyTower": 1560,
+        "cupGame": 4
+      },
+      "tasksCompleted": 8
+    },
+    {
+      "id": "8",
+      "name": "Jakub R.",
+      "role": "user",
+      "points": 260,
+      "gameRecords": {
+        "icyTower": 1340,
+        "cupGame": 3
+      },
+      "tasksCompleted": 7
+    },
+    {
+      "id": "current",
+      "name": "Ty",
+      "role": "user",
+      "points": 0,
+      "gameRecords": {
+        "icyTower": 0,
+        "cupGame": 0
+      },
+      "tasksCompleted": 0
+    }
+  ]
+}

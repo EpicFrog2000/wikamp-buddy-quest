@@ -11,6 +11,7 @@ import { RewardShop } from "@/components/RewardShop";
 import { AdminPanel } from "@/components/AdminPanel";
 import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings } from "lucide-react";
 import squirrelImage from "@/assets/squirrel.png";
+import { getCurrentUser, updateCurrentUserPoints } from "@/lib/userManager";
 
 const Companion = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -24,7 +25,18 @@ const Companion = () => {
   useEffect(() => {
     const role = localStorage.getItem("userRole");
     setIsAdmin(role === "admin");
+    
+    // Load current user points from database
+    const currentUser = getCurrentUser();
+    if (currentUser.points > 0) {
+      setStats(prev => ({ ...prev, points: currentUser.points }));
+    }
   }, []);
+
+  // Sync points to database when they change
+  useEffect(() => {
+    updateCurrentUserPoints(stats.points);
+  }, [stats.points]);
 
   const feedCompanion = () => {
     if (stats.points >= 10) {
@@ -242,7 +254,7 @@ const Companion = () => {
           </TabsContent>
 
           <TabsContent value="leaderboard">
-            <Leaderboard />
+            <Leaderboard currentPoints={stats.points} />
           </TabsContent>
 
           <TabsContent value="shop">
