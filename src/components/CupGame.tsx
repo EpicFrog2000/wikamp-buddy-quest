@@ -10,9 +10,9 @@ interface CupGameProps {
 }
 
 export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
-  const [gameState, setGameState] = useState<"betting" | "shuffling" | "choosing" | "result">("betting");
-  const [ballPosition, setBallPosition] = useState(1); // 0, 1, or 2
-  const [cupPositions, setCupPositions] = useState([0, 1, 2]);
+  const [gameState, setGameState] = useState<"betting" | "showing" | "shuffling" | "choosing" | "result">("betting");
+  const [ballPosition, setBallPosition] = useState(1); // 0, 1, or 2 - logical position (which cup has the ball)
+  const [cupPositions, setCupPositions] = useState([0, 1, 2]); // Maps visual position to logical cup
   const [bet, setBet] = useState(10);
   const [selectedCup, setSelectedCup] = useState<number | null>(null);
   const [won, setWon] = useState(false);
@@ -57,17 +57,24 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     // Deduct bet
     onPointsChange(-bet);
     
-    // Reset state
+    // Reset state - ball is placed under a RANDOM cup
     const newBallPosition = Math.floor(Math.random() * 3);
     setBallPosition(newBallPosition);
     setCupPositions([0, 1, 2]);
     setSelectedCup(null);
     setWon(false);
-    setCupsLifted(false);
+    setCupsLifted(true); // Show ball first
     setShuffleCount(0);
-    setGameState("shuffling");
+    setGameState("showing");
     
-    shuffleCups();
+    // Show ball for 2 seconds, then hide and shuffle
+    setTimeout(() => {
+      setCupsLifted(false);
+      setGameState("shuffling");
+      setTimeout(() => {
+        shuffleCups();
+      }, 500);
+    }, 2000);
   };
 
   const selectCup = (cupIndex: number) => {
@@ -229,6 +236,15 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
               {points === 0 && (
                 <p className="text-destructive text-sm">Nie masz punktów do obstawienia!</p>
               )}
+            </div>
+          )}
+
+          {gameState === "showing" && (
+            <div className="mt-8 text-center">
+              <p className="text-xl font-bold text-foreground">
+                Zapamiętaj gdzie jest piłka! 👀
+              </p>
+              <p className="text-muted-foreground">Za chwilę zacznę mieszać...</p>
             </div>
           )}
 

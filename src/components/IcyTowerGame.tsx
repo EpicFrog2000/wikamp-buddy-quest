@@ -277,8 +277,8 @@ export const IcyTowerGame = () => {
       }
 
       // Generate new platforms at the top
-      const lowestPlatform = Math.max(...platforms.map(p => p.y));
-      while (lowestPlatform > -100) {
+      const highestPlatformY = Math.min(...platforms.map(p => p.y));
+      if (highestPlatformY > -100) {
         const minGap = 50;
         const maxGap = 70;
         const minWidth = 60;
@@ -293,7 +293,7 @@ export const IcyTowerGame = () => {
         
         platforms.push({
           x: Math.random() * (maxX - minX) + minX,
-          y: lastPlatform.y - (Math.random() * (maxGap - minGap) + minGap),
+          y: highestPlatformY - (Math.random() * (maxGap - minGap) + minGap),
           width: Math.random() * (maxWidth - minWidth) + minWidth,
           height: 12
         });
