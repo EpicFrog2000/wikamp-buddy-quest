@@ -46,6 +46,30 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
+    // Validate name (1-100 characters, no control characters)
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0 || trimmedName.length > 100) {
+      toast({
+        title: "Błąd rejestracji",
+        description: "Imię musi mieć od 1 do 100 znaków",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
+    // Check for control characters
+    const controlCharRegex = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/;
+    if (controlCharRegex.test(trimmedName)) {
+      toast({
+        title: "Błąd rejestracji",
+        description: "Imię zawiera niedozwolone znaki",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
     if (password.length < 6) {
       toast({
         title: "Błąd rejestracji",
