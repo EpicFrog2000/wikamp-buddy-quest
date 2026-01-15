@@ -7,119 +7,130 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShoppingBag, ListTodo, Plus, Trash2, Edit2, Settings } from "lucide-react";
+import { ShoppingBag, ListTodo, Plus, Trash2, Edit2, Settings, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Reward {
-  id: string;
-  name: string;
-  description: string;
-  cost: number;
-  type: "attendance" | "cosmetic" | "boost";
-}
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  category: "beginner" | "intermediate" | "advanced";
-}
+import { useAdminRewards, AdminReward } from "@/hooks/useAdminRewards";
+import { useAdminTasks, AdminTask } from "@/hooks/useAdminTasks";
 
 export const AdminPanel = () => {
   const { toast } = useToast();
   
-  const [rewards, setRewards] = useState<Reward[]>([
-    { id: "1", name: "Dodatkowa obecność", description: "Zapisz obecność za dowolne zajęcia", cost: 100, type: "attendance" },
-    { id: "2", name: "Złote ucho wiewiórki", description: "Ekskluzywny dodatek do Twojego towarzysza", cost: 75, type: "cosmetic" },
-    { id: "3", name: "Bonus czasowy", description: "2x punkty przez 24 godziny", cost: 50, type: "boost" },
-  ]);
-
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", title: "Zaloguj się do Wikamp", description: "Pierwszy krok do nauki", points: 10, category: "beginner" },
-    { id: "2", title: "Przejdź do podglądu przedmiotu", description: "Kliknij przycisk Podgląd", points: 15, category: "beginner" },
-    { id: "3", title: "Ukończ pierwszą lekcję", description: "Obejrzyj materiał z wybranego kursu", points: 25, category: "intermediate" },
-  ]);
+  const { rewards, loading: rewardsLoading, addReward, updateReward, deleteReward } = useAdminRewards();
+  const { tasks, loading: tasksLoading, addTask, updateTask, deleteTask } = useAdminTasks();
 
   // Reward form state
-  const [newReward, setNewReward] = useState<Omit<Reward, "id">>({
-    name: "", description: "", cost: 0, type: "cosmetic"
+  const [newReward, setNewReward] = useState<Omit<AdminReward, "id">>({
+    name: "", description: "", cost: 0, type: "cosmetic", effect_type: null, effect_value: null
   });
-  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [editingReward, setEditingReward] = useState<AdminReward | null>(null);
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
 
   // Task form state
-  const [newTask, setNewTask] = useState<Omit<Task, "id">>({
+  const [newTask, setNewTask] = useState<Omit<AdminTask, "id" | "is_active">>({
     title: "", description: "", points: 0, category: "beginner"
   });
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<AdminTask | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
   // Reward handlers
-  const handleAddReward = () => {
+  const handleAddReward = async () => {
     if (!newReward.name || !newReward.description || newReward.cost <= 0) {
       toast({ title: "Błąd", description: "Wypełnij wszystkie pola", variant: "destructive" });
       return;
     }
-    const reward: Reward = { ...newReward, id: Date.now().toString() };
-    setRewards([...rewards, reward]);
-    setNewReward({ name: "", description: "", cost: 0, type: "cosmetic" });
-    setRewardDialogOpen(false);
-    toast({ title: "Sukces!", description: "Dodano nową nagrodę" });
+    const result = await addReward(newReward);
+    if (result.success) {
+      setNewReward({ name: "", description: "", cost: 0, type: "cosmetic", effect_type: null, effect_value: null });
+      setRewardDialogOpen(false);
+      toast({ title: "Sukces!", description: "Dodano nową nagrodę" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się dodać nagrody", variant: "destructive" });
+    }
   };
 
-  const handleEditReward = () => {
+  const handleEditReward = async () => {
     if (!editingReward) return;
-    setRewards(rewards.map(r => r.id === editingReward.id ? editingReward : r));
-    setEditingReward(null);
-    toast({ title: "Sukces!", description: "Nagroda została zaktualizowana" });
+    const success = await updateReward(editingReward.id, editingReward);
+    if (success) {
+      setEditingReward(null);
+      toast({ title: "Sukces!", description: "Nagroda została zaktualizowana" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się zaktualizować nagrody", variant: "destructive" });
+    }
   };
 
-  const handleDeleteReward = (id: string) => {
-    setRewards(rewards.filter(r => r.id !== id));
-    toast({ title: "Usunięto", description: "Nagroda została usunięta" });
+  const handleDeleteReward = async (id: string) => {
+    const success = await deleteReward(id);
+    if (success) {
+      toast({ title: "Usunięto", description: "Nagroda została usunięta" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się usunąć nagrody", variant: "destructive" });
+    }
   };
 
   // Task handlers
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!newTask.title || !newTask.description || newTask.points <= 0) {
       toast({ title: "Błąd", description: "Wypełnij wszystkie pola", variant: "destructive" });
       return;
     }
-    const task: Task = { ...newTask, id: Date.now().toString() };
-    setTasks([...tasks, task]);
-    setNewTask({ title: "", description: "", points: 0, category: "beginner" });
-    setTaskDialogOpen(false);
-    toast({ title: "Sukces!", description: "Dodano nowe zadanie" });
+    const result = await addTask(newTask);
+    if (result.success) {
+      setNewTask({ title: "", description: "", points: 0, category: "beginner" });
+      setTaskDialogOpen(false);
+      toast({ title: "Sukces!", description: "Dodano nowe zadanie" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się dodać zadania", variant: "destructive" });
+    }
   };
 
-  const handleEditTask = () => {
+  const handleEditTask = async () => {
     if (!editingTask) return;
-    setTasks(tasks.map(t => t.id === editingTask.id ? editingTask : t));
-    setEditingTask(null);
-    toast({ title: "Sukces!", description: "Zadanie zostało zaktualizowane" });
+    const success = await updateTask(editingTask.id, editingTask);
+    if (success) {
+      setEditingTask(null);
+      toast({ title: "Sukces!", description: "Zadanie zostało zaktualizowane" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się zaktualizować zadania", variant: "destructive" });
+    }
   };
 
-  const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
-    toast({ title: "Usunięto", description: "Zadanie zostało usunięte" });
+  const handleDeleteTask = async (id: string) => {
+    const success = await deleteTask(id);
+    if (success) {
+      toast({ title: "Usunięto", description: "Zadanie zostało usunięte" });
+    } else {
+      toast({ title: "Błąd", description: "Nie udało się usunąć zadania", variant: "destructive" });
+    }
   };
 
-  const getTypeLabel = (type: Reward["type"]) => {
+  const getTypeLabel = (type: string) => {
     switch (type) {
       case "attendance": return "Edukacja";
       case "cosmetic": return "Wygląd";
       case "boost": return "Wzmocnienie";
+      default: return type;
     }
   };
 
-  const getCategoryLabel = (category: Task["category"]) => {
+  const getCategoryLabel = (category: string) => {
     switch (category) {
       case "beginner": return "Łatwe";
       case "intermediate": return "Średnie";
       case "advanced": return "Trudne";
+      default: return category;
     }
   };
+
+  const isLoading = rewardsLoading || tasksLoading;
+
+  if (isLoading) {
+    return (
+      <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10 flex items-center justify-center min-h-[300px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10">
@@ -183,7 +194,7 @@ export const AdminPanel = () => {
                   </div>
                   <div>
                     <Label>Typ</Label>
-                    <Select value={newReward.type} onValueChange={(v: Reward["type"]) => setNewReward({...newReward, type: v})}>
+                    <Select value={newReward.type} onValueChange={(v: "attendance" | "cosmetic" | "boost") => setNewReward({...newReward, type: v})}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="attendance">Edukacja</SelectItem>
@@ -192,6 +203,32 @@ export const AdminPanel = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label>Efekt</Label>
+                    <Select 
+                      value={newReward.effect_type || "none"} 
+                      onValueChange={(v) => setNewReward({...newReward, effect_type: v === "none" ? null : v})}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Brak efektu</SelectItem>
+                        <SelectItem value="bonus_points">Bonus punktów</SelectItem>
+                        <SelectItem value="companion_happiness">Szczęście wiewiórki</SelectItem>
+                        <SelectItem value="companion_hunger">Głód wiewiórki</SelectItem>
+                        <SelectItem value="companion_energy">Energia wiewiórki</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {newReward.effect_type && (
+                    <div>
+                      <Label>Wartość efektu</Label>
+                      <Input 
+                        type="number" 
+                        value={newReward.effect_value || 0} 
+                        onChange={e => setNewReward({...newReward, effect_value: parseInt(e.target.value) || 0})}
+                      />
+                    </div>
+                  )}
                   <Button onClick={handleAddReward} className="w-full">Dodaj</Button>
                 </div>
               </DialogContent>
@@ -214,6 +251,11 @@ export const AdminPanel = () => {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{reward.name}</span>
                         <Badge variant="outline">{getTypeLabel(reward.type)}</Badge>
+                        {reward.effect_type && (
+                          <Badge variant="secondary" className="text-xs">
+                            {reward.effect_type === 'bonus_points' ? `+${reward.effect_value} pkt` : `+${reward.effect_value}`}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">{reward.description}</p>
                       <span className="text-sm font-bold text-primary">{reward.cost} pkt</span>
@@ -274,7 +316,7 @@ export const AdminPanel = () => {
                   </div>
                   <div>
                     <Label>Kategoria</Label>
-                    <Select value={newTask.category} onValueChange={(v: Task["category"]) => setNewTask({...newTask, category: v})}>
+                    <Select value={newTask.category} onValueChange={(v: "beginner" | "intermediate" | "advanced") => setNewTask({...newTask, category: v})}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="beginner">Łatwe</SelectItem>

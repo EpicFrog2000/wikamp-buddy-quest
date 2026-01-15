@@ -87,10 +87,6 @@ export const useLeaderboard = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-    
-    // Refresh every 5 seconds
-    const interval = setInterval(fetchLeaderboard, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   return { leaderboard, loading, refetch: fetchLeaderboard };

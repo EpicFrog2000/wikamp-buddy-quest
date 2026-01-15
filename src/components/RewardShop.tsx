@@ -1,18 +1,10 @@
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingBag, Star, CheckCircle2 } from "lucide-react";
+import { ShoppingBag, Star, CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Reward {
-  id: string;
-  name: string;
-  description: string;
-  cost: number;
-  type: "attendance" | "cosmetic" | "boost";
-  purchased: boolean;
-}
+import { useRewards } from "@/hooks/useRewards";
+import { useCompanionStats } from "@/hooks/useCompanionStats";
 
 interface RewardShopProps {
   points: number;
@@ -21,59 +13,10 @@ interface RewardShopProps {
 
 export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
   const { toast } = useToast();
-  
-  const [rewards, setRewards] = useState<Reward[]>([
-    {
-      id: "1",
-      name: "Dodatkowa obecność",
-      description: "Zapisz obecność za dowolne zajęcia",
-      cost: 100,
-      type: "attendance",
-      purchased: false,
-    },
-    {
-      id: "2",
-      name: "Złote ucho wiewiórki",
-      description: "Ekskluzywny dodatek do Twojego towarzysza",
-      cost: 75,
-      type: "cosmetic",
-      purchased: false,
-    },
-    {
-      id: "3",
-      name: "Bonus czasowy",
-      description: "2x punkty przez 24 godziny",
-      cost: 50,
-      type: "boost",
-      purchased: false,
-    },
-    {
-      id: "4",
-      name: "Przedłużenie terminu",
-      description: "Dodatkowy tydzień na oddanie projektu",
-      cost: 120,
-      type: "attendance",
-      purchased: false,
-    },
-    {
-      id: "5",
-      name: "Kolorowa czapka",
-      description: "Stylowy dodatek dla Twojej wiewiórki",
-      cost: 60,
-      type: "cosmetic",
-      purchased: false,
-    },
-    {
-      id: "6",
-      name: "Super boost",
-      description: "3x punkty przez 12 godzin",
-      cost: 80,
-      type: "boost",
-      purchased: false,
-    },
-  ]);
+  const { rewards, loading, purchaseReward, isRewardPurchased } = useRewards();
+  const { applyRewardEffect } = useCompanionStats();
 
-  const getTypeColor = (type: Reward["type"]) => {
+  const getTypeColor = (type: string) => {
     switch (type) {
       case "attendance":
         return "bg-companion-happy/20 text-companion-happy border-companion-happy/30";
@@ -81,10 +24,12 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
         return "bg-companion-hungry/20 text-companion-hungry border-companion-hungry/30";
       case "boost":
         return "bg-companion-tired/20 text-companion-tired border-companion-tired/30";
+      default:
+        return "bg-muted/20 text-muted-foreground border-muted/30";
     }
   };
 
-  const getTypeLabel = (type: Reward["type"]) => {
+  const getTypeLabel = (type: string) => {
     switch (type) {
       case "attendance":
         return "Edukacja";
@@ -92,10 +37,12 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
         return "Wygląd";
       case "boost":
         return "Wzmocnienie";
+      default:
+        return type;
     }
   };
 
-  const purchaseReward = async (rewardId: string) => {
+  const handlePurchaseReward = async (rewardId: string) => {
     const reward = rewards.find((r) => r.id === rewardId);
     if (!reward) return;
 
@@ -108,19 +55,53 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
       return;
     }
 
+    // Deduct points first
     await onPointsChange(-reward.cost);
     
-    setRewards((prev) =>
-      prev.map((r) =>
-        r.id === rewardId ? { ...r, purchased: true } : r
-      )
-    );
-
-    toast({
-      title: "Zakup udany! 🎉",
-      description: `Kupiłeś: ${reward.name}`,
-    });
+    const result = await purchaseReward(rewardId);
+    
+    if (result.success && result.reward) {
+      // Apply the effect
+      if (result.reward.effect_type && result.reward.effect_value) {
+        if (result.reward.effect_type === 'bonus_points') {
+          // Give bonus points immediately
+          await onPointsChange(result.reward.effect_value);
+          toast({
+            title: "Zakup udany! 🎉",
+            description: `Kupiłeś: ${reward.name} i otrzymujesz +${result.reward.effect_value} punktów!`,
+          });
+        } else {
+          // Apply companion stat effect
+          await applyRewardEffect(result.reward.effect_type, result.reward.effect_value);
+          toast({
+            title: "Zakup udany! 🎉",
+            description: `Kupiłeś: ${reward.name}`,
+          });
+        }
+      } else {
+        toast({
+          title: "Zakup udany! 🎉",
+          description: `Kupiłeś: ${reward.name}`,
+        });
+      }
+    } else {
+      // Refund if purchase failed
+      await onPointsChange(reward.cost);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się kupić nagrody",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10 flex items-center justify-center min-h-[300px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 bg-gradient-to-b from-card to-background border-2 border-primary/10">
@@ -138,61 +119,65 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {rewards.map((reward) => (
-          <Card
-            key={reward.id}
-            className={`p-4 transition-all duration-300 ${
-              reward.purchased
-                ? "bg-muted/50 border-game-success/30"
-                : "bg-card hover:shadow-md border-border"
-            }`}
-          >
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <h3
-                    className={`font-semibold ${
-                      reward.purchased
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground"
-                    }`}
-                  >
-                    {reward.name}
-                  </h3>
-                  <Badge className={getTypeColor(reward.type)}>
-                    {getTypeLabel(reward.type)}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {reward.description}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span className="font-bold text-primary">{reward.cost} pkt</span>
+        {rewards.map((reward) => {
+          const purchased = isRewardPurchased(reward.id);
+          
+          return (
+            <Card
+              key={reward.id}
+              className={`p-4 transition-all duration-300 ${
+                purchased
+                  ? "bg-muted/50 border-game-success/30"
+                  : "bg-card hover:shadow-md border-border"
+              }`}
+            >
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3
+                      className={`font-semibold ${
+                        purchased
+                          ? "text-muted-foreground line-through"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {reward.name}
+                    </h3>
+                    <Badge className={getTypeColor(reward.type)}>
+                      {getTypeLabel(reward.type)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {reward.description}
+                  </p>
                 </div>
 
-                {reward.purchased ? (
-                  <Badge className="bg-game-success/20 text-game-success border-game-success/30">
-                    <CheckCircle2 className="w-4 h-4 mr-1" />
-                    Kupione
-                  </Badge>
-                ) : (
-                  <Button
-                    onClick={() => purchaseReward(reward.id)}
-                    disabled={points < reward.cost}
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Kup
-                  </Button>
-                )}
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-primary" />
+                    <span className="font-bold text-primary">{reward.cost} pkt</span>
+                  </div>
+
+                  {purchased ? (
+                    <Badge className="bg-game-success/20 text-game-success border-game-success/30">
+                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                      Kupione
+                    </Badge>
+                  ) : (
+                    <Button
+                      onClick={() => handlePurchaseReward(reward.id)}
+                      disabled={points < reward.cost}
+                      size="sm"
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Kup
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
     </Card>
   );
