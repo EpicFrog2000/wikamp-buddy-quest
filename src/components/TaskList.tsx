@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { markTaskAsCompleted, getCompletedTasks, type Task } from "@/lib/taskManager";
 
-export const TaskList = () => {
+interface TaskListProps {
+  onPointsChange: (change: number) => Promise<void>;
+  onTaskComplete: () => Promise<void>;
+}
+
+export const TaskList = ({ onPointsChange, onTaskComplete }: TaskListProps) => {
   const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -95,7 +99,7 @@ export const TaskList = () => {
     };
   }, [tasks, toast]);
 
-  const completeTask = (taskId: string) => {
+  const completeTask = async (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (task && !task.completed) {
       markTaskAsCompleted(taskId);
@@ -104,6 +108,11 @@ export const TaskList = () => {
           t.id === taskId ? { ...t, completed: true } : t
         )
       );
+      
+      // Update points and task count in database
+      await onPointsChange(task.points);
+      await onTaskComplete();
+      
       toast({
         title: "Gratulacje! 🎉",
         description: `Zdobyłeś ${task.points} punktów za: ${task.title}`,
