@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,13 @@ import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings, LogOut, Lo
 import squirrelImage from "@/assets/squirrel.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useCompanionStats } from "@/hooks/useCompanionStats";
 
 const Companion = () => {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile, isAdmin, updatePoints, incrementTasksCompleted, loading: profileLoading } = useProfile();
-  
-  const [stats, setStats] = useState({
-    happiness: 80,
-    hunger: 60,
-    energy: 70,
-  });
+  const { stats, loading: statsLoading, feedCompanion, playWithCompanion, restCompanion } = useCompanionStats();
 
   // Redirect if not logged in
   useEffect(() => {
@@ -40,35 +36,24 @@ const Companion = () => {
     await updatePoints(newPoints);
   };
 
-  const feedCompanion = async () => {
+  const handleFeedCompanion = async () => {
     if (points >= 10) {
-      setStats((prev) => ({
-        ...prev,
-        hunger: Math.min(100, prev.hunger + 20),
-        happiness: Math.min(100, prev.happiness + 5),
-      }));
       await handlePointsChange(-10);
+      await feedCompanion();
     }
   };
 
-  const playWithCompanion = async () => {
+  const handlePlayWithCompanion = async () => {
     if (points >= 15) {
-      setStats((prev) => ({
-        ...prev,
-        happiness: Math.min(100, prev.happiness + 20),
-        energy: Math.max(0, prev.energy - 10),
-      }));
       await handlePointsChange(-15);
+      await playWithCompanion();
     }
   };
 
-  const restCompanion = async () => {
+  const handleRestCompanion = async () => {
     if (points >= 5) {
-      setStats((prev) => ({
-        ...prev,
-        energy: Math.min(100, prev.energy + 25),
-      }));
       await handlePointsChange(-5);
+      await restCompanion();
     }
   };
 
@@ -77,7 +62,7 @@ const Companion = () => {
     navigate("/");
   };
 
-  if (authLoading || profileLoading) {
+  if (authLoading || profileLoading || statsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -88,6 +73,8 @@ const Companion = () => {
   if (!user) {
     return null;
   }
+
+  const companionStats = stats || { happiness: 80, hunger: 60, energy: 70 };
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,9 +134,9 @@ const Companion = () => {
                     <Heart className="w-4 h-4 text-companion-happy" />
                     Szczęście
                   </span>
-                  <span className="font-bold text-card-foreground">{Math.round(stats.happiness)}%</span>
+                  <span className="font-bold text-card-foreground">{Math.round(companionStats.happiness)}%</span>
                 </div>
-                <Progress value={stats.happiness} className="h-2" />
+                <Progress value={companionStats.happiness} className="h-2" />
               </div>
 
               <div className="space-y-1">
@@ -158,9 +145,9 @@ const Companion = () => {
                     <Utensils className="w-4 h-4 text-companion-hungry" />
                     Głód
                   </span>
-                  <span className="font-bold text-card-foreground">{Math.round(stats.hunger)}%</span>
+                  <span className="font-bold text-card-foreground">{Math.round(companionStats.hunger)}%</span>
                 </div>
-                <Progress value={stats.hunger} className="h-2" />
+                <Progress value={companionStats.hunger} className="h-2" />
               </div>
 
               <div className="space-y-1">
@@ -169,16 +156,16 @@ const Companion = () => {
                     <Battery className="w-4 h-4 text-companion-tired" />
                     Energia
                   </span>
-                  <span className="font-bold text-card-foreground">{Math.round(stats.energy)}%</span>
+                  <span className="font-bold text-card-foreground">{Math.round(companionStats.energy)}%</span>
                 </div>
-                <Progress value={stats.energy} className="h-2" />
+                <Progress value={companionStats.energy} className="h-2" />
               </div>
             </div>
 
             {/* Actions */}
             <div className="grid grid-cols-3 gap-2 pt-2">
               <Button
-                onClick={feedCompanion}
+                onClick={handleFeedCompanion}
                 disabled={points < 10}
                 size="sm"
                 variant="secondary"
@@ -188,7 +175,7 @@ const Companion = () => {
                 <span className="text-xs">10 pkt</span>
               </Button>
               <Button
-                onClick={playWithCompanion}
+                onClick={handlePlayWithCompanion}
                 disabled={points < 15}
                 size="sm"
                 variant="secondary"
@@ -198,7 +185,7 @@ const Companion = () => {
                 <span className="text-xs">15 pkt</span>
               </Button>
               <Button
-                onClick={restCompanion}
+                onClick={handleRestCompanion}
                 disabled={points < 5}
                 size="sm"
                 variant="secondary"
@@ -214,7 +201,7 @@ const Companion = () => {
         {/* Info */}
         <div className="p-4 bg-accent/10 rounded-xl border border-accent/20">
           <p className="text-sm text-center text-sidebar-foreground/80">
-            Wykonuj zadania, graj w mini grę i zdobywaj punkty!
+            Wykonuj zadania, graj w mini grę i zdobywaj punkty! Statystyki wiewiórki spadają z czasem - dbaj o nią!
           </p>
         </div>
       </aside>

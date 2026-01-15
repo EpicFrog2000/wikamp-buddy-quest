@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      companion_stats: {
+        Row: {
+          created_at: string
+          energy: number
+          happiness: number
+          hunger: number
+          id: string
+          last_decay_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy?: number
+          happiness?: number
+          hunger?: number
+          id?: string
+          last_decay_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy?: number
+          happiness?: number
+          hunger?: number
+          id?: string
+          last_decay_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_records: {
         Row: {
           created_at: string
@@ -77,6 +110,113 @@ export type Database = {
         }
         Relationships: []
       }
+      rewards: {
+        Row: {
+          cost: number
+          created_at: string
+          description: string
+          effect_type: string | null
+          effect_value: number | null
+          id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          description: string
+          effect_type?: string | null
+          effect_value?: number | null
+          id?: string
+          name: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          description?: string
+          effect_type?: string | null
+          effect_value?: number | null
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean | null
+          points: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean | null
+          points?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          points?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          purchased_at: string
+          reward_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string
+          reward_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string
+          reward_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rewards_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -94,6 +234,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_tasks: {
+        Row: {
+          completed_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

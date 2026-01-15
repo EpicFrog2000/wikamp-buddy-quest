@@ -86,6 +86,10 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     
     setWon(playerWon);
     
+    // Give small participation points for playing (easy game)
+    const participationPoints = 2;
+    onPointsChange(participationPoints);
+    
     if (playerWon) {
       const winAmount = bet * 2;
       onPointsChange(winAmount);
@@ -262,8 +266,9 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                     🎉 Wygrałeś!
                   </p>
                   <p className="text-lg text-foreground">
-                    Zdobywasz <span className="font-bold text-primary">+{bet * 2}</span> punktów!
+                    Zdobywasz <span className="font-bold text-primary">+{bet * 2 + 2}</span> punktów!
                   </p>
+                  <p className="text-sm text-muted-foreground">(+2 za granie, +{bet * 2} za wygraną)</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -271,8 +276,9 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                     😢 Pudło!
                   </p>
                   <p className="text-lg text-foreground">
-                    Straciłeś <span className="font-bold text-destructive">{bet}</span> punktów
+                    Straciłeś <span className="font-bold text-destructive">{bet - 2}</span> punktów netto
                   </p>
+                  <p className="text-sm text-muted-foreground">(+2 za granie, -{bet} za przegraną)</p>
                 </div>
               )}
               <Button onClick={resetGame} size="lg" className="gap-2">
