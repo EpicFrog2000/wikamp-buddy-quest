@@ -17,7 +17,7 @@ import { useProfile } from "@/hooks/useProfile";
 const Companion = () => {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { profile, isAdmin, updatePoints, loading: profileLoading } = useProfile();
+  const { profile, isAdmin, updatePoints, incrementTasksCompleted, loading: profileLoading } = useProfile();
   
   const [stats, setStats] = useState({
     happiness: 80,
@@ -268,7 +268,10 @@ const Companion = () => {
           </TabsList>
 
           <TabsContent value="tasks">
-            <TaskList />
+            <TaskList 
+              onPointsChange={handlePointsChange} 
+              onTaskComplete={incrementTasksCompleted}
+            />
           </TabsContent>
 
           <TabsContent value="game">
@@ -283,7 +286,10 @@ const Companion = () => {
           </TabsContent>
 
           <TabsContent value="shop">
-            <RewardShop />
+            <RewardShop 
+              points={points} 
+              onPointsChange={handlePointsChange}
+            />
           </TabsContent>
 
           {isAdmin && (

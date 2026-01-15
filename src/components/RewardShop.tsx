@@ -14,9 +14,13 @@ interface Reward {
   purchased: boolean;
 }
 
-export const RewardShop = () => {
+interface RewardShopProps {
+  points: number;
+  onPointsChange: (change: number) => Promise<void>;
+}
+
+export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
   const { toast } = useToast();
-  const [userPoints] = useState(150); // Mock user points
   
   const [rewards, setRewards] = useState<Reward[]>([
     {
@@ -91,19 +95,21 @@ export const RewardShop = () => {
     }
   };
 
-  const purchaseReward = (rewardId: string) => {
+  const purchaseReward = async (rewardId: string) => {
     const reward = rewards.find((r) => r.id === rewardId);
     if (!reward) return;
 
-    if (userPoints < reward.cost) {
+    if (points < reward.cost) {
       toast({
         title: "Za mało punktów! 😔",
-        description: `Potrzebujesz ${reward.cost - userPoints} punktów więcej.`,
+        description: `Potrzebujesz ${reward.cost - points} punktów więcej.`,
         variant: "destructive",
       });
       return;
     }
 
+    await onPointsChange(-reward.cost);
+    
     setRewards((prev) =>
       prev.map((r) =>
         r.id === rewardId ? { ...r, purchased: true } : r
@@ -127,7 +133,7 @@ export const RewardShop = () => {
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full">
           <Star className="w-5 h-5" />
-          <span className="font-bold">{userPoints} pkt</span>
+          <span className="font-bold">{points} pkt</span>
         </div>
       </div>
 
@@ -176,7 +182,7 @@ export const RewardShop = () => {
                 ) : (
                   <Button
                     onClick={() => purchaseReward(reward.id)}
-                    disabled={userPoints < reward.cost}
+                    disabled={points < reward.cost}
                     size="sm"
                     className="bg-primary hover:bg-primary/90"
                   >
