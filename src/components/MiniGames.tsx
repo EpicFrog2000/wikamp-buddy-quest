@@ -24,7 +24,7 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
           <ArrowLeft className="w-4 h-4" />
           Powrót do wyboru gier
         </Button>
-        <IcyTowerGame />
+        <IcyTowerGame onPointsChange={onPointsChange} />
       </div>
     );
   }
