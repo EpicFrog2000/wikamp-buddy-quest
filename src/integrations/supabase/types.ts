@@ -269,12 +269,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      companion_action_atomic: {
+        Args: { _action: string; _cost: number; _user_id: string }
+        Returns: {
+          error_message: string
+          new_balance: number
+          success: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      purchase_reward_atomic: {
+        Args: { _reward_id: string; _user_id: string }
+        Returns: {
+          error_message: string
+          new_balance: number
+          reward_effect_type: string
+          reward_effect_value: number
+          success: boolean
+        }[]
       }
     }
     Enums: {
