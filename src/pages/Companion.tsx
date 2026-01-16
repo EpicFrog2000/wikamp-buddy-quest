@@ -295,7 +295,10 @@ const Companion = () => {
           <TabsContent value="tasks">
             <TaskList 
               onPointsChange={handlePointsChange} 
-              onTaskComplete={incrementTasksCompleted}
+              onTaskComplete={async () => {
+                await incrementTasksCompleted();
+                await refetchProfile();
+              }}
             />
           </TabsContent>
 
