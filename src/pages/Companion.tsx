@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,15 @@ import squirrelImage from "@/assets/squirrel.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useCompanionStats } from "@/hooks/useCompanionStats";
+import { useToast } from "@/hooks/use-toast";
 
 const Companion = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { profile, isAdmin, updatePoints, incrementTasksCompleted, loading: profileLoading } = useProfile();
-  const { stats, loading: statsLoading, feedCompanion, playWithCompanion, restCompanion } = useCompanionStats();
+  const { profile, isAdmin, updatePoints, incrementTasksCompleted, loading: profileLoading, refetchProfile } = useProfile();
+  const { stats, loading: statsLoading, performCompanionActionAtomic } = useCompanionStats();
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -36,26 +39,49 @@ const Companion = () => {
     await updatePoints(newPoints);
   };
 
-  const handleFeedCompanion = async () => {
-    if (points >= 10) {
-      await handlePointsChange(-10);
-      await feedCompanion();
+  // Set points directly (used by atomic operations)
+  const setPoints = async (newPoints: number) => {
+    await updatePoints(newPoints);
+  };
+
+  // Atomic companion actions using database functions
+  const handleCompanionAction = async (action: 'feed' | 'play' | 'rest', cost: number, actionLabel: string) => {
+    if (actionInProgress) return;
+    setActionInProgress(action);
+
+    try {
+      const result = await performCompanionActionAtomic(action, cost);
+      
+      if (result.success) {
+        // Update local points state with the new balance from server
+        await updatePoints(result.newBalance);
+        toast({
+          title: `${actionLabel} udane! 🎉`,
+          description: `Wiewiórka jest szczęśliwsza!`,
+        });
+      } else {
+        if (result.errorMessage === 'Insufficient points') {
+          toast({
+            title: "Za mało punktów! 😔",
+            description: `Potrzebujesz ${cost} punktów.`,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Błąd",
+            description: result.errorMessage || "Nie udało się wykonać akcji",
+            variant: "destructive",
+          });
+        }
+      }
+    } finally {
+      setActionInProgress(null);
     }
   };
 
-  const handlePlayWithCompanion = async () => {
-    if (points >= 15) {
-      await handlePointsChange(-15);
-      await playWithCompanion();
-    }
-  };
-
-  const handleRestCompanion = async () => {
-    if (points >= 5) {
-      await handlePointsChange(-5);
-      await restCompanion();
-    }
-  };
+  const handleFeedCompanion = () => handleCompanionAction('feed', 10, 'Karmienie');
+  const handlePlayWithCompanion = () => handleCompanionAction('play', 15, 'Zabawa');
+  const handleRestCompanion = () => handleCompanionAction('rest', 5, 'Odpoczynek');
 
   const handleSignOut = async () => {
     await signOut();
@@ -166,32 +192,44 @@ const Companion = () => {
             <div className="grid grid-cols-3 gap-2 pt-2">
               <Button
                 onClick={handleFeedCompanion}
-                disabled={points < 10}
+                disabled={points < 10 || actionInProgress === 'feed'}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
               >
-                <Utensils className="w-4 h-4" />
+                {actionInProgress === 'feed' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Utensils className="w-4 h-4" />
+                )}
                 <span className="text-xs">10 pkt</span>
               </Button>
               <Button
                 onClick={handlePlayWithCompanion}
-                disabled={points < 15}
+                disabled={points < 15 || actionInProgress === 'play'}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
               >
-                <Heart className="w-4 h-4" />
+                {actionInProgress === 'play' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart className="w-4 h-4" />
+                )}
                 <span className="text-xs">15 pkt</span>
               </Button>
               <Button
                 onClick={handleRestCompanion}
-                disabled={points < 5}
+                disabled={points < 5 || actionInProgress === 'rest'}
                 size="sm"
                 variant="secondary"
                 className="flex flex-col h-auto py-3 gap-1"
               >
-                <Battery className="w-4 h-4" />
+                {actionInProgress === 'rest' ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Battery className="w-4 h-4" />
+                )}
                 <span className="text-xs">5 pkt</span>
               </Button>
             </div>
@@ -275,7 +313,7 @@ const Companion = () => {
           <TabsContent value="shop">
             <RewardShop 
               points={points} 
-              onPointsChange={handlePointsChange}
+              onPointsChange={setPoints}
             />
           </TabsContent>
 

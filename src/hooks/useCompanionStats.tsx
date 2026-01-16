@@ -14,6 +14,12 @@ export interface CompanionStats {
 const DECAY_INTERVAL_MS = 60 * 1000; // Check every minute
 const DECAY_RATE_PER_HOUR = 2; // Stats decay by 2 per hour
 
+interface CompanionActionResult {
+  success: boolean;
+  new_balance: number;
+  error_message: string;
+}
+
 export const useCompanionStats = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<CompanionStats | null>(null);
@@ -121,28 +127,44 @@ export const useCompanionStats = () => {
     return !error;
   }, [user, stats]);
 
-  const feedCompanion = useCallback(async () => {
-    if (!stats) return false;
-    return updateStats({
-      hunger: stats.hunger + 20,
-      happiness: stats.happiness + 5
-    });
-  }, [stats, updateStats]);
+  // Atomic companion action using database function to prevent race conditions
+  const performCompanionActionAtomic = useCallback(async (
+    action: 'feed' | 'play' | 'rest',
+    cost: number
+  ): Promise<{ success: boolean; newBalance: number; errorMessage: string | null }> => {
+    if (!user) {
+      return { success: false, newBalance: 0, errorMessage: "Not authenticated" };
+    }
 
-  const playWithCompanion = useCallback(async () => {
-    if (!stats) return false;
-    return updateStats({
-      happiness: stats.happiness + 20,
-      energy: stats.energy - 10
+    const { data, error } = await supabase.rpc('companion_action_atomic', {
+      _user_id: user.id,
+      _action: action,
+      _cost: cost
     });
-  }, [stats, updateStats]);
 
-  const restCompanion = useCallback(async () => {
-    if (!stats) return false;
-    return updateStats({
-      energy: stats.energy + 25
-    });
-  }, [stats, updateStats]);
+    if (error) {
+      console.error("Error performing companion action:", error);
+      return { success: false, newBalance: 0, errorMessage: error.message };
+    }
+
+    const result = data as CompanionActionResult[] | null;
+    if (!result || result.length === 0) {
+      return { success: false, newBalance: 0, errorMessage: "Unknown error" };
+    }
+
+    const actionResult = result[0];
+    
+    if (actionResult.success) {
+      // Refresh stats after successful action
+      await fetchStats();
+    }
+
+    return {
+      success: actionResult.success,
+      newBalance: actionResult.new_balance,
+      errorMessage: actionResult.success ? null : actionResult.error_message
+    };
+  }, [user, fetchStats]);
 
   const applyRewardEffect = useCallback(async (effectType: string, effectValue: number) => {
     if (!stats) return false;
@@ -163,9 +185,7 @@ export const useCompanionStats = () => {
     stats,
     loading,
     updateStats,
-    feedCompanion,
-    playWithCompanion,
-    restCompanion,
+    performCompanionActionAtomic,
     applyRewardEffect,
     refetch: fetchStats
   };

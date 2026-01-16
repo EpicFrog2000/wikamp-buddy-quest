@@ -22,6 +22,14 @@ export interface UserReward {
   is_active: boolean;
 }
 
+interface PurchaseResult {
+  success: boolean;
+  new_balance: number;
+  error_message: string;
+  reward_effect_type: string | null;
+  reward_effect_value: number;
+}
+
 export const useRewards = () => {
   const { user } = useAuth();
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -66,25 +74,56 @@ export const useRewards = () => {
     }
   }, [user, fetchPurchasedRewards]);
 
-  const purchaseReward = useCallback(async (rewardId: string) => {
-    if (!user) return { success: false, reward: null };
-
-    const reward = rewards.find(r => r.id === rewardId);
-    if (!reward || purchasedRewardIds.includes(rewardId)) {
-      return { success: false, reward: null };
+  // Atomic purchase using database function to prevent race conditions
+  const purchaseRewardAtomic = useCallback(async (rewardId: string): Promise<{
+    success: boolean;
+    newBalance: number;
+    errorMessage: string | null;
+    effectType: string | null;
+    effectValue: number;
+  }> => {
+    if (!user) {
+      return { success: false, newBalance: 0, errorMessage: "Not authenticated", effectType: null, effectValue: 0 };
     }
 
-    const { error } = await supabase
-      .from("user_rewards")
-      .insert({ user_id: user.id, reward_id: rewardId });
+    const reward = rewards.find(r => r.id === rewardId);
+    if (!reward) {
+      return { success: false, newBalance: 0, errorMessage: "Reward not found", effectType: null, effectValue: 0 };
+    }
+
+    if (purchasedRewardIds.includes(rewardId)) {
+      return { success: false, newBalance: 0, errorMessage: "Already purchased", effectType: null, effectValue: 0 };
+    }
+
+    // Use atomic database function
+    const { data, error } = await supabase.rpc('purchase_reward_atomic', {
+      _user_id: user.id,
+      _reward_id: rewardId
+    });
 
     if (error) {
       console.error("Error purchasing reward:", error);
-      return { success: false, reward: null };
+      return { success: false, newBalance: 0, errorMessage: error.message, effectType: null, effectValue: 0 };
     }
 
-    setPurchasedRewardIds(prev => [...prev, rewardId]);
-    return { success: true, reward };
+    const result = data as PurchaseResult[] | null;
+    if (!result || result.length === 0) {
+      return { success: false, newBalance: 0, errorMessage: "Unknown error", effectType: null, effectValue: 0 };
+    }
+
+    const purchaseResult = result[0];
+    
+    if (purchaseResult.success) {
+      setPurchasedRewardIds(prev => [...prev, rewardId]);
+    }
+
+    return {
+      success: purchaseResult.success,
+      newBalance: purchaseResult.new_balance,
+      errorMessage: purchaseResult.success ? null : purchaseResult.error_message,
+      effectType: purchaseResult.reward_effect_type,
+      effectValue: purchaseResult.reward_effect_value
+    };
   }, [user, rewards, purchasedRewardIds]);
 
   const isRewardPurchased = useCallback((rewardId: string) => {
@@ -95,7 +134,7 @@ export const useRewards = () => {
     rewards,
     purchasedRewardIds,
     loading,
-    purchaseReward,
+    purchaseRewardAtomic,
     isRewardPurchased,
     refetch: () => {
       fetchRewards();
