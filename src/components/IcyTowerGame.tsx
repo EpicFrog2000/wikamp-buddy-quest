@@ -24,9 +24,10 @@ interface Platform {
 
 interface IcyTowerGameProps {
   onScoreUpdate?: (score: number) => void;
+  onPointsChange?: (change: number) => void;
 }
 
-export const IcyTowerGame = ({ onScoreUpdate }: IcyTowerGameProps) => {
+export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
   const { gameRecords, updateGameRecord } = useProfile();
@@ -167,7 +168,13 @@ export const IcyTowerGame = ({ onScoreUpdate }: IcyTowerGameProps) => {
     // Save score to database
     await updateGameRecord("icyTower", score);
     onScoreUpdate?.(score);
-  }, [score, updateGameRecord, onScoreUpdate]);
+    
+    // Award points: 1 point per 100 game score
+    const earnedPoints = Math.floor(score / 100);
+    if (earnedPoints > 0 && onPointsChange) {
+      onPointsChange(earnedPoints);
+    }
+  }, [score, updateGameRecord, onScoreUpdate, onPointsChange]);
 
   const gameLoop = useCallback((timestamp: number) => {
     const canvas = canvasRef.current;
@@ -430,6 +437,9 @@ export const IcyTowerGame = ({ onScoreUpdate }: IcyTowerGameProps) => {
                     <div className="space-y-2">
                       <p className="text-xl font-bold text-primary">
                         Twój wynik: {score}
+                      </p>
+                      <p className="text-sm text-foreground">
+                        Zdobyłeś <span className="font-bold text-green-600">+{Math.floor(score / 100)}</span> punktów!
                       </p>
                       {score >= highScore && score > 0 && (
                         <p className="text-sm text-green-600 font-bold">

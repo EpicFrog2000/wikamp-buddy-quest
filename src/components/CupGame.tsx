@@ -86,11 +86,8 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     
     setWon(playerWon);
     
-    // Give small participation points for playing (easy game)
-    const participationPoints = 2;
-    onPointsChange(participationPoints);
-    
     if (playerWon) {
+      // Win: get double points (bet was already deducted, so add bet * 2)
       const winAmount = bet * 2;
       onPointsChange(winAmount);
       const newTotalWon = totalWon + 1;
@@ -99,6 +96,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
       // Update game record in database
       await updateGameRecord("cupGame", newTotalWon);
     }
+    // Lose: points already deducted at start, nothing to do
   };
 
   const resetGame = () => {
@@ -266,9 +264,9 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                     🎉 Wygrałeś!
                   </p>
                   <p className="text-lg text-foreground">
-                    Zdobywasz <span className="font-bold text-primary">+{bet * 2 + 2}</span> punktów!
+                    Zdobywasz <span className="font-bold text-primary">+{bet}</span> punktów!
                   </p>
-                  <p className="text-sm text-muted-foreground">(+2 za granie, +{bet * 2} za wygraną)</p>
+                  <p className="text-sm text-muted-foreground">(Odzyskujesz zakład + wygrywasz tyle samo)</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -276,9 +274,8 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                     😢 Pudło!
                   </p>
                   <p className="text-lg text-foreground">
-                    Straciłeś <span className="font-bold text-destructive">{bet - 2}</span> punktów netto
+                    Straciłeś <span className="font-bold text-destructive">{bet}</span> punktów
                   </p>
-                  <p className="text-sm text-muted-foreground">(+2 za granie, -{bet} za przegraną)</p>
                 </div>
               )}
               <Button onClick={resetGame} size="lg" className="gap-2">
