@@ -55,7 +55,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
   const gameLoopIdRef = useRef<number>(0);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const keyDown = (e: KeyboardEvent) => {
       keysPressedRef.current.add(e.key);
       
       if (e.key === " " && gameStarted && !gameOver) {
@@ -63,16 +63,16 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
       }
     };
 
-    const handleKeyUp = (e: KeyboardEvent) => {
+    const keyUp = (e: KeyboardEvent) => {
       keysPressedRef.current.delete(e.key);
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("keydown", keyDown);
+      window.removeEventListener("keyup", keyUp);
     };
   }, [gameStarted, gameOver]);
 
@@ -143,7 +143,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
     setGameOver(false);
   }, [initPlatforms]);
 
-  const startGame = useCallback(() => {
+  const start = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -295,13 +295,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
         ctx.fillStyle = "rgba(0, 100, 0, 0.2)";
         ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
         
-        const platformGradient = ctx.createLinearGradient(
-          platform.x, platform.y,
-          platform.x, platform.y + platform.height
-        );
-        platformGradient.addColorStop(0, "#4CAF50");
-        platformGradient.addColorStop(1, "#2E7D32");
-        ctx.fillStyle = platformGradient;
+        ctx.fillStyle = "#4CAF50";
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         
         ctx.strokeStyle = "#1B5E20";
@@ -316,13 +310,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
         ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
         ctx.fillRect(platform.x + 2, platform.y + 2, platform.width, platform.height);
         
-        const platformGradient = ctx.createLinearGradient(
-          platform.x, platform.y,
-          platform.x, platform.y + platform.height
-        );
-        platformGradient.addColorStop(0, "#FF8A65");
-        platformGradient.addColorStop(1, "#D84315");
-        ctx.fillStyle = platformGradient;
+        ctx.fillStyle = "#FF8A65";
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
         
         ctx.strokeStyle = "#BF360C";
@@ -393,8 +381,8 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-              🐿️ Wiewiórka w Górę!
+            <h2 className="text-2xl font-bold text-foreground">
+              Wiewiórka w Górę
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Zacznij na platformie START i wspinaj się jak najwyżej!
@@ -427,33 +415,28 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
             <div className="absolute inset-0 flex items-center justify-center bg-background/90 backdrop-blur-sm rounded-xl">
               <div className="text-center space-y-6 p-8 max-w-sm">
                 <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-foreground">
-                    {gameOver ? `Koniec gry!` : "Wspinaczka wiewiórki!"}
+                  <h3 className="text-2xl font-bold">
+                    {gameOver ? `Koniec` : "Start"}
                   </h3>
-                  {gameOver && (
-                    <div className="space-y-2">
-                      <p className="text-xl font-bold text-primary">
-                        Twój wynik: {score}
-                      </p>
-                      <p className="text-sm text-foreground">
-                        Zdobyłeś <span className="font-bold text-green-600">+{Math.floor(score / 100)}</span> punktów!
-                      </p>
+                    {gameOver && (
+                      <div>
+                        <p className="text-xl font-bold">Wynik: {score}</p>
+                        <p className="text-sm">+{Math.floor(score / 100)} pkt</p>
                       {score >= highScore && score > 0 && (
                         <p className="text-sm text-green-600 font-bold">
-                          🎉 Nowy rekord!
+                          Nowy rekord!
                         </p>
                       )}
                     </div>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    Zaczniesz na zielonej platformie START.<br />
-                    Użyj strzałek lub WASD do ruchu i spacji do skoku.
+                    Strzałki/WASD + spacja
                   </p>
                 </div>
                 
                 <div className="space-y-3">
                   <Button
-                    onClick={startGame}
+                    onClick={start}
                     size="lg"
                     className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                   >
