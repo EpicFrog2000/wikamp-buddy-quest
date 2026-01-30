@@ -115,7 +115,7 @@ const Index = () => {
               />
             </div>
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              Kliknij mnie! 🎮
+              Kliknij mnie
             </div>
           </div>
         </div>
