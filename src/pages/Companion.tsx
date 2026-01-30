@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useCompanionStats } from "@/hooks/useCompanionStats";
 import { useToast } from "@/hooks/use-toast";
+import { Play } from "lucide-react";
 
 const Companion = () => {
   const navigate = useNavigate();
@@ -223,9 +224,9 @@ const Companion = () => {
           </div>
         </Card>
 
-        <div className="p-4 bg-accent/10 rounded-xl border border-accent/20">
-          <p className="text-sm text-center text-sidebar-foreground/80">
-            Wykonuj zadania, graj w mini grę i zdobywaj punkty! Statystyki wiewiórki spadają z czasem - dbaj o nią!
+        <div className="p-4 bg-accent/10 rounded-xl">
+          <p className="text-sm text-center">
+            Zadania = punkty. Pamiętaj karmić wiewiórkę.
           </p>
         </div>
       </aside>
@@ -244,10 +245,7 @@ const Companion = () => {
               value="game"
               className="flex flex-col gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Play className="w-5 h-5" />
               <span className="text-sm font-semibold">Mini Gra</span>
             </TabsTrigger>
             <TabsTrigger
