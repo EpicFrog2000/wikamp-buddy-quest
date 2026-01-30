@@ -62,19 +62,13 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
             onClick={() => setSelectedGame("squirrel")}
           >
             <div className="text-center space-y-4">
-              <div className="text-6xl">🐿️</div>
-              <h3 className="text-2xl font-bold text-foreground">Wiewiórka w Górę!</h3>
+              <h3 className="text-2xl font-bold">Wiewiórka w Górę</h3>
               <p className="text-muted-foreground">
                 Skacz po platformach i wspinaj się jak najwyżej! Sterowanie strzałkami lub WASD.
               </p>
-              <div className="flex justify-center gap-2">
-                <span className="px-3 py-1 bg-primary/10 rounded-full text-sm font-medium text-primary">
-                  Platformówka
-                </span>
-                <span className="px-3 py-1 bg-secondary rounded-full text-sm font-medium text-secondary-foreground">
-                  Zręcznościowa
-                </span>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Platformówka, zręcznościowa
+              </p>
               <Button className="w-full mt-4">
                 Zagraj
               </Button>
@@ -82,12 +76,11 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
           </Card>
 
           <Card
-            className="p-6 cursor-pointer hover:scale-[1.02] transition-all hover:shadow-xl border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-950/30 dark:to-yellow-900/20"
+            className="p-6 cursor-pointer hover:scale-[1.02] transition-all border-2 bg-orange-50 dark:bg-orange-950"
             onClick={() => setSelectedGame("cups")}
           >
             <div className="text-center space-y-4">
-              <div className="text-6xl">🎩</div>
-              <h3 className="text-2xl font-bold text-foreground">Trzy Kubki</h3>
+              <h3 className="text-2xl font-bold">Gra w Kubki</h3>
               <p className="text-muted-foreground">
                 Obstawiaj punkty i zgaduj pod którym kubkiem jest piłka. Wygraj x2!
               </p>
