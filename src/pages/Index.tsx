@@ -2,16 +2,12 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { markTaskAsCompleted } from "@/lib/taskManager";
 import squirrelImage from "@/assets/squirrel.png";
 
 const Index = () => {
   const { toast } = useToast();
 
   const handlePreview = (courseName: string) => {
-    // Mark task as completed
-    markTaskAsCompleted("2");
-    
     toast({
       title: "Podgląd przedmiotu",
       description: `Wyświetlam podgląd: ${courseName}`,
