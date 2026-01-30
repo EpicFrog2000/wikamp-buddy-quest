@@ -9,13 +9,12 @@ import { MiniGames } from "@/components/MiniGames";
 import { Leaderboard } from "@/components/Leaderboard";
 import { RewardShop } from "@/components/RewardShop";
 import { AdminPanel } from "@/components/AdminPanel";
-import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings, LogOut, Loader2 } from "lucide-react";
+import { ArrowLeft, Heart, Utensils, Battery, Trophy, Star, Settings, LogOut, Loader2, ShoppingBag, Play } from "lucide-react";
 import squirrelImage from "@/assets/squirrel.png";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useCompanionStats } from "@/hooks/useCompanionStats";
 import { useToast } from "@/hooks/use-toast";
-import { Play } from "lucide-react";
 
 const Companion = () => {
   const navigate = useNavigate();
@@ -259,9 +258,7 @@ const Companion = () => {
               value="shop"
               className="flex flex-col gap-2 py-3 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+              <ShoppingBag className="w-5 h-5" />
               <span className="text-sm font-semibold">Sklep</span>
             </TabsTrigger>
             {isAdmin && (
