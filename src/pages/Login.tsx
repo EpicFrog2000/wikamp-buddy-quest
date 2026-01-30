@@ -24,7 +24,7 @@ const Login = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const login = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -42,7 +42,7 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const register = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
@@ -116,8 +116,8 @@ const Login = () => {
 
         <Card className="border-orange-200 shadow-xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl text-orange-800">Witaj!</CardTitle>
-            <CardDescription>Zaloguj się lub utwórz konto</CardDescription>
+            <CardTitle className="text-xl text-orange-800">Login</CardTitle>
+            <CardDescription>Zaloguj się</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="space-y-4">
@@ -127,7 +127,7 @@ const Login = () => {
               </TabsList>
 
               <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={login} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input
@@ -170,7 +170,7 @@ const Login = () => {
               </TabsContent>
 
               <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4">
+                <form onSubmit={register} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="register-name">Imię</Label>
                     <Input
