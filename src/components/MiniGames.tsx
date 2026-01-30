@@ -57,7 +57,6 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Squirrel Game Card */}
           <Card
             className="p-6 cursor-pointer hover:scale-[1.02] transition-all hover:shadow-xl border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-950/30 dark:to-amber-900/20"
             onClick={() => setSelectedGame("squirrel")}
@@ -82,7 +81,6 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
             </div>
           </Card>
 
-          {/* Cup Game Card */}
           <Card
             className="p-6 cursor-pointer hover:scale-[1.02] transition-all hover:shadow-xl border-2 border-transparent hover:border-primary/30 bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-950/30 dark:to-yellow-900/20"
             onClick={() => setSelectedGame("cups")}

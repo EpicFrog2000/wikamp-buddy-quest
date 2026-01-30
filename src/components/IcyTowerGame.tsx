@@ -54,7 +54,6 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
   const lastTimestampRef = useRef<number>(0);
   const gameLoopIdRef = useRef<number>(0);
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       keysPressedRef.current.add(e.key);
@@ -165,11 +164,9 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
     setGameStarted(false);
     cancelAnimationFrame(gameLoopIdRef.current);
     
-    // Save score to database
     await updateGameRecord("icyTower", score);
     onScoreUpdate?.(score);
     
-    // Award points: 1 point per 100 game score
     const earnedPoints = Math.floor(score / 100);
     if (earnedPoints > 0 && onPointsChange) {
       onPointsChange(earnedPoints);

@@ -123,7 +123,6 @@ export const useProfile = () => {
           fetchGameRecords();
         }
       } else {
-        // Just increment games_played
         await supabase
           .from("game_records")
           .update({ games_played: existingRecord.games_played + 1 })

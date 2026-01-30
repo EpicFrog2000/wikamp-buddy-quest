@@ -62,7 +62,6 @@ export const useAdminTasks = () => {
   }, []);
 
   const deleteTask = useCallback(async (id: string) => {
-    // Soft delete by setting is_active to false
     const { error } = await supabase
       .from("tasks")
       .update({ is_active: false })

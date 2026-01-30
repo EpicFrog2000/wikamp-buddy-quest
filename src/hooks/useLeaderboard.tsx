@@ -21,7 +21,6 @@ export const useLeaderboard = () => {
   const fetchLeaderboard = async () => {
     setLoading(true);
     
-    // Fetch profiles
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("*");
@@ -32,7 +31,6 @@ export const useLeaderboard = () => {
       return;
     }
 
-    // Fetch all game records
     const { data: gameRecords, error: gameRecordsError } = await supabase
       .from("game_records")
       .select("*");
@@ -41,7 +39,6 @@ export const useLeaderboard = () => {
       console.error("Error fetching game records:", gameRecordsError);
     }
 
-    // Fetch all user roles
     const { data: userRoles, error: rolesError } = await supabase
       .from("user_roles")
       .select("*");
@@ -50,7 +47,6 @@ export const useLeaderboard = () => {
       console.error("Error fetching user roles:", rolesError);
     }
 
-    // Combine data
     const entries: LeaderboardEntry[] = profiles.map((profile) => {
       const userGameRecords = gameRecords?.filter(r => r.user_id === profile.user_id) || [];
       const icyTowerRecord = userGameRecords.find(r => r.game_name === "icyTower");
@@ -75,7 +71,6 @@ export const useLeaderboard = () => {
       };
     });
 
-    // Sort by total score and assign ranks
     entries.sort((a, b) => b.totalScore - a.totalScore);
     entries.forEach((entry, index) => {
       entry.rank = index + 1;

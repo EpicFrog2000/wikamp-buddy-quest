@@ -40,7 +40,6 @@ export const useCompanionStats = () => {
     }
 
     if (data) {
-      // Apply time-based decay
       const lastDecay = new Date(data.last_decay_at);
       const now = new Date();
       const hoursPassed = (now.getTime() - lastDecay.getTime()) / (1000 * 60 * 60);
@@ -51,7 +50,6 @@ export const useCompanionStats = () => {
         const newHunger = Math.max(0, data.hunger - decay);
         const newEnergy = Math.max(0, data.energy - decay);
         
-        // Update in database
         const { error: updateError } = await supabase
           .from("companion_stats")
           .update({
@@ -74,10 +72,9 @@ export const useCompanionStats = () => {
           setStats(data);
         }
       } else {
-        setStats(data);
+      setStats(data);
       }
     } else {
-      // Create stats for existing user
       const { data: newData, error: insertError } = await supabase
         .from("companion_stats")
         .insert({ user_id: user.id })
@@ -95,7 +92,6 @@ export const useCompanionStats = () => {
     fetchStats();
   }, [fetchStats]);
 
-  // Periodic decay check
   useEffect(() => {
     if (!user) return;
 
@@ -127,7 +123,6 @@ export const useCompanionStats = () => {
     return !error;
   }, [user, stats]);
 
-  // Atomic companion action using database function to prevent race conditions
   const performCompanionActionAtomic = useCallback(async (
     action: 'feed' | 'play' | 'rest',
     cost: number
@@ -155,7 +150,6 @@ export const useCompanionStats = () => {
     const actionResult = result[0];
     
     if (actionResult.success) {
-      // Refresh stats after successful action
       await fetchStats();
     }
 
