@@ -42,37 +42,28 @@ const Companion = () => {
   };
 
   const handleCompanionAction = async (action: 'feed' | 'play' | 'rest', cost: number, actionLabel: string) => {
-    if (actionInProgress) return;
+    if (actionInProgress) return; // blokada podwójnego kliknięcia
     setActionInProgress(action);
-
+  
     try {
       const result = await performCompanionActionAtomic(action, cost);
       
       if (result.success) {
         await updatePoints(result.newBalance);
-        toast({
-          title: `${actionLabel} udane!`,
-          description: `Wiewiórka jest szczęśliwsza!`,
-        });
+        toast({ title: `${actionLabel} OK!` }); // uproszczone
       } else {
-        if (result.errorMessage === 'Insufficient points') {
-          toast({
-            title: "Za mało punktów!",
-            description: `Potrzebujesz ${cost} punktów.`,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Błąd",
-            description: result.errorMessage || "Nie udało się wykonać akcji",
-            variant: "destructive",
-          });
-        }
+        // za mało punktów
+        toast({
+          title: "Za mało punktów",
+          description: `Potrzeba ${cost} pkt`,
+          variant: "destructive",
+        });
       }
     } finally {
       setActionInProgress(null);
     }
   };
+
 
   const handleFeedCompanion = () => handleCompanionAction('feed', 10, 'Karmienie');
   const handlePlayWithCompanion = () => handleCompanionAction('play', 15, 'Zabawa');
