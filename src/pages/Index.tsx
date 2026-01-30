@@ -43,7 +43,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
-        {/* Sidebar */}
         <aside className="w-64 bg-sidebar text-sidebar-foreground min-h-screen p-5 sticky top-0">
           <h2 className="text-xl font-bold mb-6">WIKAMP WEEIA</h2>
           <nav className="space-y-2">
@@ -77,13 +76,11 @@ const Index = () => {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-6">
           <h1 className="text-3xl font-bold mb-8 text-foreground">
             Szkolenia Centrum E-learningu
           </h1>
 
-          {/* Tiles */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {tiles.map((tile, index) => (
               <Card
@@ -95,7 +92,6 @@ const Index = () => {
             ))}
           </div>
 
-          {/* Courses Section */}
           <Card className="p-6 border-2 border-border">
             <h3 className="text-2xl font-bold mb-6 text-foreground">
               Przegląd przedmiotów
@@ -125,7 +121,6 @@ const Index = () => {
         </main>
       </div>
 
-      {/* Squirrel Companion - Fixed in corner */}
       <Link to="/companion">
         <div className="fixed bottom-6 right-6 group cursor-pointer z-50">
           <div className="relative">

@@ -149,7 +149,6 @@ export const AdminPanel = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Rewards Tab */}
         <TabsContent value="rewards" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Zarządzaj nagrodami</h3>
@@ -271,7 +270,6 @@ export const AdminPanel = () => {
           </div>
         </TabsContent>
 
-        {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Zarządzaj zadaniami</h3>

@@ -51,13 +51,13 @@ const Companion = () => {
       if (result.success) {
         await updatePoints(result.newBalance);
         toast({
-          title: `${actionLabel} udane! 🎉`,
+          title: `${actionLabel} udane!`,
           description: `Wiewiórka jest szczęśliwsza!`,
         });
       } else {
         if (result.errorMessage === 'Insufficient points') {
           toast({
-            title: "Za mało punktów! 😔",
+            title: "Za mało punktów!",
             description: `Potrzebujesz ${cost} punktów.`,
             variant: "destructive",
           });

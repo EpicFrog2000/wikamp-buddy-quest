@@ -11,8 +11,8 @@ export interface CompanionStats {
   last_decay_at: string;
 }
 
-const DECAY_INTERVAL_MS = 60 * 1000; // Check every minute
-const DECAY_RATE_PER_HOUR = 2; // Stats decay by 2 per hour
+const DECAY_INTERVAL_MS = 60 * 1000;
+const DECAY_RATE_PER_HOUR = 2;
 
 interface CompanionActionResult {
   success: boolean;

@@ -46,7 +46,6 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Validate name (1-100 characters, no control characters)
     const trimmedName = name.trim();
     if (trimmedName.length === 0 || trimmedName.length > 100) {
       toast({
@@ -58,7 +57,6 @@ const Login = () => {
       return;
     }
     
-    // Check for control characters
     const controlCharRegex = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/;
     if (controlCharRegex.test(trimmedName)) {
       toast({
@@ -231,7 +229,7 @@ const Login = () => {
         </Card>
 
         <p className="text-center text-sm text-orange-600 mt-4">
-          © 2024 Centrum e-Learningu Politechniki Łódzkiej
+          © 2026 Centrum e-Learningu Politechniki Łódzkiej
         </p>
       </div>
     </div>

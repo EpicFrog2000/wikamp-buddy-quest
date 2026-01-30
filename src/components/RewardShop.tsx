@@ -48,7 +48,6 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
     const reward = rewards.find((r) => r.id === rewardId);
     if (!reward) return;
 
-    // Prevent double-click with local state
     if (purchasingId) return;
     setPurchasingId(rewardId);
 
