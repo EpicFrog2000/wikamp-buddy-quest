@@ -84,14 +84,9 @@ export const MiniGames = ({ points, onPointsChange }: MiniGamesProps) => {
               <p className="text-muted-foreground">
                 Obstawiaj punkty i zgaduj pod którym kubkiem jest piłka. Wygraj x2!
               </p>
-              <div className="flex justify-center gap-2">
-                <span className="px-3 py-1 bg-primary/10 rounded-full text-sm font-medium text-primary">
-                  Hazard
-                </span>
-                <span className="px-3 py-1 bg-secondary rounded-full text-sm font-medium text-secondary-foreground">
-                  Szczęście
-                </span>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Hazard, szczęście
+              </p>
               <Button className="w-full mt-4">
                 Zagraj
               </Button>
