@@ -166,26 +166,13 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
               >
                 <div className="relative">
                   <svg width="100" height="120" viewBox="0 0 100 120">
-                    <defs>
-                      <linearGradient id={`cupGradient${visualIndex}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#8B4513" />
-                        <stop offset="50%" stopColor="#D2691E" />
-                        <stop offset="100%" stopColor="#8B4513" />
-                      </linearGradient>
-                    </defs>
                     <path
                       d="M20 0 L80 0 L90 110 Q50 120 10 110 Z"
-                      fill={`url(#cupGradient${visualIndex})`}
+                      fill="#8B4513"
                       stroke="#5D3A1A"
                       strokeWidth="2"
                     />
-                    <ellipse cx="50" cy="8" rx="35" ry="8" fill="#A0522D" stroke="#5D3A1A" strokeWidth="2" />
-                    <path
-                      d="M30 20 L35 100"
-                      stroke="rgba(255,255,255,0.3)"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                    />
+                    <ellipse cx="50" cy="8" rx="35" ry="8" fill="#A0522D" />
                   </svg>
                 </div>
               </div>
