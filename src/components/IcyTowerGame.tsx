@@ -284,10 +284,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
       return;
     }
 
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#E3F2FD");
-    gradient.addColorStop(1, "#BBDEFB");
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = "#E3F2FD";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     platforms.forEach((platform) => {
@@ -327,13 +324,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
     ctx.ellipse(playerCenterX + 2, player.y + player.height + 3, 10, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    const bodyGradient = ctx.createRadialGradient(
-      playerCenterX, playerCenterY, 0,
-      playerCenterX, playerCenterY, 12
-    );
-    bodyGradient.addColorStop(0, "#FFB74D");
-    bodyGradient.addColorStop(1, "#F57C00");
-    ctx.fillStyle = bodyGradient;
+    ctx.fillStyle = "#FFB74D";
     ctx.beginPath();
     ctx.ellipse(playerCenterX, playerCenterY, 12, 10, 0, 0, Math.PI * 2);
     ctx.fill();
