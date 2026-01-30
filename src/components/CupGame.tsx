@@ -51,7 +51,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     setTimeout(doShuffle, 500);
   }, []);
 
-  const startGame = () => {
+  const start = () => {
     if (bet > points || bet < 1) return;
     
     onPointsChange(-bet);
@@ -129,7 +129,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-              🎩 Trzy Kubki
+              Trzy Kubki
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Znajdź piłkę pod jednym z trzech kubków!
@@ -207,7 +207,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                 <span className="text-muted-foreground">punktów</span>
               </div>
               <Button
-                onClick={startGame}
+                onClick={start}
                 disabled={bet > points || points === 0}
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
