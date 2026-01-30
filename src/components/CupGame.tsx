@@ -96,7 +96,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     }
   };
 
-  const resetGame = () => {
+  const reset = () => {
     setGameState("betting");
     setCupsLifted(false);
     setSelectedCup(null);
@@ -223,27 +223,21 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
 
           {gameState === "showing" && (
             <div className="mt-8 text-center">
-              <p className="text-xl font-bold text-foreground">
-                Zapamiętaj gdzie jest piłka! 👀
-              </p>
+              <p className="text-xl font-bold">Zapamiętaj</p>
               <p className="text-muted-foreground">Za chwilę zacznę mieszać...</p>
             </div>
           )}
 
           {gameState === "shuffling" && (
             <div className="mt-8 text-center">
-              <p className="text-xl font-bold text-foreground animate-pulse">
-                Mieszam kubki... 🔄
-              </p>
+              <p className="text-xl font-bold animate-pulse">Mieszam...</p>
               <p className="text-muted-foreground">Ruch {shuffleCount}</p>
             </div>
           )}
 
           {gameState === "choosing" && (
             <div className="mt-8 text-center">
-              <p className="text-xl font-bold text-foreground">
-                Wybierz kubek! 👆
-              </p>
+              <p className="text-xl font-bold">Wybierz kubek</p>
               <p className="text-muted-foreground">Kliknij na kubek, pod którym myślisz że jest piłka</p>
             </div>
           )}
@@ -253,7 +247,7 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
               {won ? (
                 <div className="space-y-2">
                   <p className="text-2xl font-bold text-green-600">
-                    🎉 Wygrałeś!
+                    Wygrałeś!
                   </p>
                   <p className="text-lg text-foreground">
                     Zdobywasz <span className="font-bold text-primary">+{bet}</span> punktów!
@@ -263,14 +257,14 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
               ) : (
                 <div className="space-y-2">
                   <p className="text-2xl font-bold text-destructive">
-                    😢 Pudło!
+                    Pudło!
                   </p>
                   <p className="text-lg text-foreground">
                     Straciłeś <span className="font-bold text-destructive">{bet}</span> punktów
                   </p>
                 </div>
               )}
-              <Button onClick={resetGame} size="lg" className="gap-2">
+              <Button onClick={reset} size="lg" className="gap-2">
                 <Play className="w-5 h-5" />
                 Zagraj ponownie
               </Button>
@@ -279,13 +273,9 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
         </div>
 
         <div className="bg-muted/50 rounded-lg p-4">
-          <h4 className="font-semibold text-foreground mb-2">Jak grać:</h4>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>1. Ustaw zakład - ile punktów chcesz postawić</li>
-            <li>2. Obserwuj jak kubki są mieszane</li>
-            <li>3. Wybierz kubek, pod którym myślisz że jest piłka</li>
-            <li>4. Wygraj x2 swojego zakładu lub stracisz punkty!</li>
-          </ul>
+          <p className="text-sm text-muted-foreground">
+            Postaw zakład, zapamiętaj gdzie piłka, wybierz kubek. x2 albo minus punkty.
+          </p>
         </div>
       </div>
     </Card>
