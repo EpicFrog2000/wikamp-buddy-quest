@@ -4,22 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Trophy, ArrowUp, RefreshCw } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 
+// player state
 interface Player {
   x: number;
   y: number;
-  vx: number;
-  vy: number;
+  vx: number; // velocity x
+  vy: number; // velocity y
   jumping: boolean;
   width: number;
   height: number;
 }
 
+// platformy w grze
 interface Platform {
   x: number;
   y: number;
   width: number;
   height: number;
-  isStartingPlatform?: boolean;
+  isStartingPlatform?: boolean; // zielona platforma start
 }
 
 interface IcyTowerGameProps {
@@ -76,7 +78,7 @@ export const IcyTowerGame = ({ onScoreUpdate, onPointsChange }: IcyTowerGameProp
     };
   }, [gameStarted, gameOver]);
 
-  const initPlatforms = useCallback((canvas: HTMLCanvasElement) => {
+  const initPlatforms = (canvas: HTMLCanvasElement) => {
     const platforms: Platform[] = [];
     const startPlatformY = canvas.height - 100;
     
