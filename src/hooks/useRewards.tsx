@@ -74,7 +74,6 @@ export const useRewards = () => {
     }
   }, [user, fetchPurchasedRewards]);
 
-  // Atomic purchase using database function to prevent race conditions
   const purchaseRewardAtomic = useCallback(async (rewardId: string): Promise<{
     success: boolean;
     newBalance: number;
@@ -95,7 +94,6 @@ export const useRewards = () => {
       return { success: false, newBalance: 0, errorMessage: "Already purchased", effectType: null, effectValue: 0 };
     }
 
-    // Use atomic database function
     const { data, error } = await supabase.rpc('purchase_reward_atomic', {
       _user_id: user.id,
       _reward_id: rewardId

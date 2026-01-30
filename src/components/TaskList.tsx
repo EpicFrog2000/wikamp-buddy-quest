@@ -18,7 +18,6 @@ export const TaskList = ({ onPointsChange, onTaskComplete }: TaskListProps) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || isTaskCompleted(taskId)) return;
 
-    // First add points immediately for better UX
     await onPointsChange(task.points);
     
     const result = await completeTask(taskId);
@@ -30,7 +29,6 @@ export const TaskList = ({ onPointsChange, onTaskComplete }: TaskListProps) => {
         description: `Zdobyłeś ${task.points} punktów za: ${task.title}`,
       });
     } else {
-      // Rollback points if task completion failed
       await onPointsChange(-task.points);
       toast({
         title: "Błąd",

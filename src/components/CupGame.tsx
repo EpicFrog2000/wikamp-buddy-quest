@@ -87,16 +87,13 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
     setWon(playerWon);
     
     if (playerWon) {
-      // Win: get double points (bet was already deducted, so add bet * 2)
       const winAmount = bet * 2;
       onPointsChange(winAmount);
       const newTotalWon = totalWon + 1;
       setTotalWon(newTotalWon);
       
-      // Update game record in database
       await updateGameRecord("cupGame", newTotalWon);
     }
-    // Lose: points already deducted at start, nothing to do
   };
 
   const resetGame = () => {
@@ -151,17 +148,13 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
           </div>
         </div>
 
-        {/* Game Area */}
         <div className="relative bg-gradient-to-b from-secondary/30 to-secondary/10 rounded-xl p-8 min-h-[300px] flex flex-col items-center justify-center">
-          {/* Cups Container */}
           <div className="relative h-[150px] w-[360px]">
-            {/* Ball */}
             <div
               className="absolute bottom-0 w-[30px] h-[30px] rounded-full bg-gradient-to-br from-red-400 to-red-600 shadow-lg"
               style={getBallStyle()}
             />
             
-            {/* Cups */}
             {[0, 1, 2].map((visualIndex) => (
               <div
                 key={visualIndex}
@@ -196,10 +189,9 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
                   </svg>
                 </div>
               </div>
-            ))}
+          ))}
           </div>
 
-          {/* Game States */}
           {gameState === "betting" && (
             <div className="mt-8 space-y-4 text-center">
               <div className="flex items-center justify-center gap-4">
@@ -286,7 +278,6 @@ export const CupGame = ({ points, onPointsChange }: CupGameProps) => {
           )}
         </div>
 
-        {/* Instructions */}
         <div className="bg-muted/50 rounded-lg p-4">
           <h4 className="font-semibold text-foreground mb-2">Jak grać:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">

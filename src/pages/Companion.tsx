@@ -24,14 +24,12 @@ const Companion = () => {
   const { stats, loading: statsLoading, performCompanionActionAtomic } = useCompanionStats();
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/");
     }
   }, [user, authLoading, navigate]);
 
-  // Sync points with profile
   const points = profile?.points || 0;
 
   const handlePointsChange = async (change: number) => {
@@ -39,12 +37,10 @@ const Companion = () => {
     await updatePoints(newPoints);
   };
 
-  // Set points directly (used by atomic operations)
   const setPoints = async (newPoints: number) => {
     await updatePoints(newPoints);
   };
 
-  // Atomic companion actions using database functions
   const handleCompanionAction = async (action: 'feed' | 'play' | 'rest', cost: number, actionLabel: string) => {
     if (actionInProgress) return;
     setActionInProgress(action);
@@ -53,7 +49,6 @@ const Companion = () => {
       const result = await performCompanionActionAtomic(action, cost);
       
       if (result.success) {
-        // Update local points state with the new balance from server
         await updatePoints(result.newBalance);
         toast({
           title: `${actionLabel} udane! 🎉`,
@@ -104,9 +99,7 @@ const Companion = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar with Companion */}
       <aside className="fixed left-0 top-0 w-80 h-screen bg-sidebar text-sidebar-foreground p-6 overflow-y-auto">
-        {/* Back Button */}
         <Link to="/dashboard">
           <Button variant="ghost" className="mb-4 text-sidebar-foreground hover:bg-white/10 w-full justify-start">
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -114,8 +107,7 @@ const Companion = () => {
           </Button>
         </Link>
 
-        {/* Sign Out Button */}
-        <Button 
+        <Button
           variant="ghost" 
           className="mb-6 text-sidebar-foreground hover:bg-white/10 w-full justify-start"
           onClick={handleSignOut}
@@ -124,13 +116,11 @@ const Companion = () => {
           Wyloguj się
         </Button>
 
-        {/* Header */}
         <h2 className="text-2xl font-bold mb-2">Twój Towarzysz</h2>
         <p className="text-sm text-sidebar-foreground/70 mb-6">
           Witaj, {profile?.name || user.email}!
         </p>
 
-        {/* Points Display */}
         <div className="mb-6 p-4 bg-primary rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Star className="w-6 h-6 text-primary-foreground" />
@@ -139,7 +129,6 @@ const Companion = () => {
           <span className="text-primary-foreground font-bold text-2xl">{points}</span>
         </div>
 
-        {/* Companion Display */}
         <Card className="mb-6 bg-gradient-to-b from-card to-background border-2 border-primary/20">
           <div className="p-6 space-y-4">
             <div className="relative">
@@ -152,7 +141,6 @@ const Companion = () => {
               </div>
             </div>
 
-            {/* Stats */}
             <div className="space-y-3">
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
@@ -188,7 +176,6 @@ const Companion = () => {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="grid grid-cols-3 gap-2 pt-2">
               <Button
                 onClick={handleFeedCompanion}
@@ -236,7 +223,6 @@ const Companion = () => {
           </div>
         </Card>
 
-        {/* Info */}
         <div className="p-4 bg-accent/10 rounded-xl border border-accent/20">
           <p className="text-sm text-center text-sidebar-foreground/80">
             Wykonuj zadania, graj w mini grę i zdobywaj punkty! Statystyki wiewiórki spadają z czasem - dbaj o nią!
@@ -244,7 +230,6 @@ const Companion = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="ml-80 p-8">
         <Tabs defaultValue="tasks" className="space-y-6">
           <TabsList className={`grid w-full h-auto p-2 bg-card border-2 border-primary/10 ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>

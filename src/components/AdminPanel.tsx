@@ -18,21 +18,18 @@ export const AdminPanel = () => {
   const { rewards, loading: rewardsLoading, addReward, updateReward, deleteReward } = useAdminRewards();
   const { tasks, loading: tasksLoading, addTask, updateTask, deleteTask } = useAdminTasks();
 
-  // Reward form state
   const [newReward, setNewReward] = useState<Omit<AdminReward, "id">>({
     name: "", description: "", cost: 0, type: "cosmetic", effect_type: null, effect_value: null
   });
   const [editingReward, setEditingReward] = useState<AdminReward | null>(null);
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
 
-  // Task form state
   const [newTask, setNewTask] = useState<Omit<AdminTask, "id" | "is_active">>({
     title: "", description: "", points: 0, category: "beginner"
   });
   const [editingTask, setEditingTask] = useState<AdminTask | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
-  // Reward handlers
   const handleAddReward = async () => {
     if (!newReward.name || !newReward.description || newReward.cost <= 0) {
       toast({ title: "Błąd", description: "Wypełnij wszystkie pola", variant: "destructive" });
@@ -68,7 +65,6 @@ export const AdminPanel = () => {
     }
   };
 
-  // Task handlers
   const handleAddTask = async () => {
     if (!newTask.title || !newTask.description || newTask.points <= 0) {
       toast({ title: "Błąd", description: "Wypełnij wszystkie pola", variant: "destructive" });

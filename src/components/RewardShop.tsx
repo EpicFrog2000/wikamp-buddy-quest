@@ -53,25 +53,18 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
     setPurchasingId(rewardId);
 
     try {
-      // Use atomic database function - handles balance check and deduction atomically
       const result = await purchaseRewardAtomic(rewardId);
 
       if (result.success) {
-        // Update local points state with the new balance from server
         onPointsChange(result.newBalance);
 
-        // Apply the effect if applicable
         if (result.effectType && result.effectValue) {
           if (result.effectType === 'bonus_points') {
-            // Bonus points are already handled by the atomic function conceptually
-            // But we need to add them back - this is a special case
-            // For now, just notify the user
             toast({
               title: "Zakup udany! 🎉",
               description: `Kupiłeś: ${reward.name} i otrzymujesz +${result.effectValue} punktów!`,
             });
           } else {
-            // Apply companion stat effect
             await applyRewardEffect(result.effectType, result.effectValue);
             toast({
               title: "Zakup udany! 🎉",
@@ -85,7 +78,6 @@ export const RewardShop = ({ points, onPointsChange }: RewardShopProps) => {
           });
         }
       } else {
-        // Show error from server
         if (result.errorMessage === 'Insufficient points') {
           toast({
             title: "Za mało punktów! 😔",
