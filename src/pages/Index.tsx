@@ -7,38 +7,20 @@ import squirrelImage from "@/assets/squirrel.png";
 const Index = () => {
   const { toast } = useToast();
 
-  const handlePreview = (courseName: string) => {
+  const preview = (name: string) => {
     toast({
-      title: "Podgląd przedmiotu",
-      description: `Wyświetlam podgląd: ${courseName}`,
+      title: "Podgląd",
+      description: name,
     });
   };
 
   const courses = [
-    {
-      title: "2025z Bazy danych lab NS1 sem5 PD",
-      meta: "III rok • Semestr zimowy",
-    },
-    {
-      title: "23/24 - Systemy Operacyjne 1 - Wykład",
-      meta: "I rok • Wykład",
-    },
-    {
-      title: "25/26 zaoczne - Podstawy inżynierii oprogramowania",
-      meta: "Zaoczne • PIO",
-    },
+    { title: "2025z Bazy danych lab NS1 sem5 PD", meta: "III rok, zima" },
+    { title: "23/24 - Systemy Operacyjne 1 - Wykład", meta: "I rok" },
+    { title: "25/26 zaoczne - PIO", meta: "Zaoczne" }
   ];
 
-  const tiles = [
-    "Strona WEEIA",
-    "Strefa pracownika",
-    "Strefa studenta",
-    "Wsparcie WIKAMP",
-    "Centrum IT",
-    "Przedmioty",
-    "Akty normatywne",
-    "Zgłoś problem",
-  ];
+  const tiles = ["Przedmioty", "Materiały", "Zadania", "Ranking"];
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +88,7 @@ const Index = () => {
                       variant="secondary" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => handlePreview(course.title)}
+                      onClick={() => preview(course.title)}
                     >
                       Podgląd
                     </Button>
